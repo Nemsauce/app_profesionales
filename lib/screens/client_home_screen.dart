@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/professional.dart';
 import '../services/auth_service.dart';
 import '../services/professional_service.dart';
+import 'professional_detail_screen.dart';
 
 class ClientHomeScreen extends StatelessWidget {
   const ClientHomeScreen({super.key});
@@ -72,6 +73,16 @@ class ClientHomeScreen extends StatelessWidget {
                       return ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text(professional.name),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ProfessionalDetailScreen(
+                                professional: professional,
+                              ),
+                            ),
+                          );
+                        },
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
