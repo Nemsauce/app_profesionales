@@ -61,55 +61,61 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: const Text('Iniciar Sesión'),
-        backgroundColor: AppTheme.primaryBlue,
+        backgroundColor: AppTheme.primaryTerracotta,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Logo / icon
             const SizedBox(height: 40),
-            const Icon(Icons.work, size: 88, color: AppTheme.primaryBlue),
+            const Icon(
+              Icons.home_repair_service,
+              size: 88,
+              color: AppTheme.primaryTerracotta,
+            ),
             const SizedBox(height: 24),
             const Text(
               'Bienvenido',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: AppTheme.navy,
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             const Text(
               'Inicia sesión para continuar',
+              style: TextStyle(color: AppTheme.navy, fontSize: 16),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
             Card(
+              color: AppTheme.cardBackground,
               child: Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Email field
                     TextField(
                       controller: _emailController,
                       enabled: !_isLoading,
                       decoration: const InputDecoration(
                         labelText: 'Correo electrónico',
-                        border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.email),
                       ),
                       keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: 16),
-                    // Password field
                     TextField(
                       controller: _passwordController,
                       enabled: !_isLoading,
                       decoration: InputDecoration(
                         labelText: 'Contraseña',
-                        border: const OutlineInputBorder(),
                         prefixIcon: const Icon(Icons.lock),
                         suffixIcon: IconButton(
                           onPressed: _isLoading
@@ -129,7 +135,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       obscureText: _obscurePassword,
                     ),
                     const SizedBox(height: 24),
-                    // Iniciar sesión button
                     ElevatedButton(
                       onPressed: _isLoading ? null : _login,
                       child: _isLoading
@@ -144,7 +149,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           : const Text('Iniciar sesión'),
                     ),
                     const SizedBox(height: 12),
-                    // Registrarse button (outline style)
                     OutlinedButton(
                       onPressed: _isLoading
                           ? null
