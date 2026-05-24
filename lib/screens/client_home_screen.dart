@@ -36,6 +36,54 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
     });
   }
 
+  void _openProfessionalDetail(Professional professional) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProfessionalDetailScreen(professional: professional),
+      ),
+    );
+  }
+
+  Widget _buildProfessionalCard(Professional professional) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      child: InkWell(
+        onTap: () => _openProfessionalDetail(professional),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                professional.name,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text('Categoría: ${professional.category}'),
+              Text('Ciudad: ${professional.city}'),
+              Text(
+                'Rating: ${professional.rating.toStringAsFixed(1)} (${professional.reviewCount} reviews)',
+              ),
+              Text('WhatsApp: ${professional.whatsappNumber}'),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => _openProfessionalDetail(professional),
+                  child: const Text('Ver perfil'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final hasFilters =
@@ -132,36 +180,10 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                   return ListView.separated(
                     itemCount: professionals.length,
                     separatorBuilder: (context, index) =>
-                        const Divider(height: 1),
+                        const SizedBox(height: 4),
                     itemBuilder: (context, index) {
                       final professional = professionals[index];
-
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(professional.name),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ProfessionalDetailScreen(
-                                professional: professional,
-                              ),
-                            ),
-                          );
-                        },
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Categoría: ${professional.category}'),
-                            Text('Ciudad: ${professional.city}'),
-                            Text(
-                              'Rating: ${professional.rating.toStringAsFixed(1)}',
-                            ),
-                            Text('Reviews: ${professional.reviewCount}'),
-                            Text('WhatsApp: ${professional.whatsappNumber}'),
-                          ],
-                        ),
-                      );
+                      return _buildProfessionalCard(professional);
                     },
                   );
                 },
