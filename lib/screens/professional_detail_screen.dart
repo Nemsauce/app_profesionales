@@ -1,14 +1,65 @@
 import 'package:flutter/material.dart';
 
 import '../models/professional.dart';
+import '../services/contact_service.dart';
 
-class ProfessionalDetailScreen extends StatelessWidget {
+class ProfessionalDetailScreen extends StatefulWidget {
   const ProfessionalDetailScreen({super.key, required this.professional});
 
   final Professional professional;
 
   @override
+  State<ProfessionalDetailScreen> createState() =>
+      _ProfessionalDetailScreenState();
+}
+
+class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
+  final _contactService = ContactService();
+  bool _isContactLoading = false;
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _openWhatsApp() async {
+    if (_isContactLoading) return;
+
+    setState(() => _isContactLoading = true);
+
+    try {
+      await _contactService.openWhatsApp(widget.professional.whatsappNumber);
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar(e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) {
+        setState(() => _isContactLoading = false);
+      }
+    }
+  }
+
+  Future<void> _callPhone() async {
+    if (_isContactLoading) return;
+
+    setState(() => _isContactLoading = true);
+
+    try {
+      await _contactService.callPhone(widget.professional.phoneNumber);
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar(e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) {
+        setState(() => _isContactLoading = false);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final professional = widget.professional;
     final description = professional.description.trim().isEmpty
         ? 'Sin descripción por ahora.'
         : professional.description.trim();
@@ -54,11 +105,14 @@ class ProfessionalDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: null,
+            onPressed: _isContactLoading ? null : _openWhatsApp,
             child: const Text('Contactar por WhatsApp'),
           ),
           const SizedBox(height: 8),
-          ElevatedButton(onPressed: null, child: const Text('Llamar')),
+          ElevatedButton(
+            onPressed: _isContactLoading ? null : _callPhone,
+            child: const Text('Llamar'),
+          ),
         ],
       ),
     );

@@ -8,12 +8,7 @@ class ContactService {
     }
 
     final uri = Uri.parse('https://wa.me/$number');
-
-    if (!await canLaunchUrl(uri)) {
-      throw Exception('No se pudo abrir WhatsApp.');
-    }
-
-    final launched = await launchUrl(uri);
+    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!launched) {
       throw Exception('No se pudo abrir WhatsApp.');
     }
