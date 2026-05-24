@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
 
+import '../constants/app_constants.dart';
 import '../models/professional.dart';
 import '../services/auth_service.dart';
 import '../services/professional_service.dart';
 import 'professional_detail_screen.dart';
 
-class ClientHomeScreen extends StatelessWidget {
+class ClientHomeScreen extends StatefulWidget {
   const ClientHomeScreen({super.key});
 
-  static final ProfessionalService _professionalService = ProfessionalService();
+  @override
+  State<ClientHomeScreen> createState() => _ClientHomeScreenState();
+}
+
+class _ClientHomeScreenState extends State<ClientHomeScreen> {
+  final ProfessionalService _professionalService = ProfessionalService();
+  String? _selectedCategory;
+  String? _selectedCity;
 
   Future<void> _logout(BuildContext context) async {
     try {
@@ -21,8 +29,19 @@ class ClientHomeScreen extends StatelessWidget {
     }
   }
 
+  void _clearFilters() {
+    setState(() {
+      _selectedCategory = null;
+      _selectedCity = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final hasFilters =
+        (_selectedCategory?.isNotEmpty ?? false) ||
+        (_selectedCity?.isNotEmpty ?? false);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Cliente')),
       body: Padding(
@@ -35,9 +54,54 @@ class ClientHomeScreen extends StatelessWidget {
               child: const Text('Cerrar sesión'),
             ),
             const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              key: ValueKey('category-${_selectedCategory ?? ''}'),
+              initialValue: _selectedCategory,
+              decoration: const InputDecoration(
+                labelText: 'Categoría',
+                border: OutlineInputBorder(),
+              ),
+              items: AppConstants.serviceCategories
+                  .map(
+                    (category) => DropdownMenuItem(
+                      value: category,
+                      child: Text(category),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                setState(() => _selectedCategory = value);
+              },
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              key: ValueKey('city-${_selectedCity ?? ''}'),
+              initialValue: _selectedCity,
+              decoration: const InputDecoration(
+                labelText: 'Ciudad',
+                border: OutlineInputBorder(),
+              ),
+              items: AppConstants.mainCities
+                  .map(
+                    (city) => DropdownMenuItem(value: city, child: Text(city)),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                setState(() => _selectedCity = value);
+              },
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton(
+              onPressed: hasFilters ? _clearFilters : null,
+              child: const Text('Limpiar filtros'),
+            ),
+            const SizedBox(height: 16),
             Expanded(
               child: StreamBuilder<List<Professional>>(
-                stream: _professionalService.getActiveProfessionals(),
+                stream: _professionalService.getActiveProfessionalsFiltered(
+                  category: _selectedCategory,
+                  city: _selectedCity,
+                ),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -55,9 +119,11 @@ class ClientHomeScreen extends StatelessWidget {
                   final professionals = snapshot.data ?? [];
 
                   if (professionals.isEmpty) {
-                    return const Center(
+                    return Center(
                       child: Text(
-                        'No hay profesionales disponibles por ahora.',
+                        hasFilters
+                            ? 'No hay profesionales disponibles con estos filtros.'
+                            : 'No hay profesionales disponibles por ahora.',
                         textAlign: TextAlign.center,
                       ),
                     );
