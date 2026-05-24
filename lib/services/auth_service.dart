@@ -9,10 +9,34 @@ class AuthService {
 
   User? get currentUser => _auth.currentUser;
 
-  Future<void> login({
-    required String email,
-    required String password,
-  }) async {
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
+
+  Future<String?> getCurrentUserRole() async {
+    final user = currentUser;
+    if (user == null) return null;
+
+    try {
+      final userDoc = await _firestore.collection('users').doc(user.uid).get();
+
+      if (!userDoc.exists) return null;
+
+      final role = userDoc.data()?['role'];
+
+      if (role == 'client' || role == 'professional') {
+        return role as String;
+      }
+
+      return null;
+    } on FirebaseException catch (e) {
+      throw Exception(
+        'No se pudo obtener el rol del usuario: ${e.message ?? e.code}',
+      );
+    } catch (e) {
+      throw Exception('No se pudo obtener el rol del usuario.');
+    }
+  }
+
+  Future<void> login({required String email, required String password}) async {
     final normalizedEmail = email.trim().toLowerCase();
     try {
       await _auth.signInWithEmailAndPassword(
@@ -83,7 +107,9 @@ class AuthService {
       throw Exception(_handleAuthException(e));
     } catch (e) {
       await _deleteCreatedUserIfNeeded(user);
-      throw Exception('Falló el registro del cliente. Por favor, intenta de nuevo.');
+      throw Exception(
+        'Falló el registro del cliente. Por favor, intenta de nuevo.',
+      );
     }
   }
 
@@ -145,8 +171,9 @@ class AuthService {
         subscriptionActive: true,
       );
       batch.set(
-          _firestore.collection('professionals').doc(uid),
-          professional.toJson());
+        _firestore.collection('professionals').doc(uid),
+        professional.toJson(),
+      );
 
       await batch.commit();
     } on FirebaseAuthException catch (e) {
@@ -154,7 +181,9 @@ class AuthService {
       throw Exception(_handleAuthException(e));
     } catch (e) {
       await _deleteCreatedUserIfNeeded(user);
-      throw Exception('Falló el registro del profesional. Por favor, intenta de nuevo.');
+      throw Exception(
+        'Falló el registro del profesional. Por favor, intenta de nuevo.',
+      );
     }
   }
 
