@@ -102,7 +102,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
 
       if (!mounted) return;
-      _showSnackBar('Cuenta creada correctamente.');
+      _showSnackBar('Cuenta creada correctamente');
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
