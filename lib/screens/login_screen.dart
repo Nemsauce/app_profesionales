@@ -1,12 +1,64 @@
 import 'package:flutter/material.dart';
 import 'register_screen.dart';
+import '../services/auth_service.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _authService = AuthService();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _login() async {
+    if (_isLoading) return;
+
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      _showSnackBar('Ingresa correo electrónico y contraseña.');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _authService.login(email: email, password: password);
+
+      if (!mounted) return;
+      _showSnackBar('Inicio de sesión exitoso');
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar(e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-        return Scaffold(
+    return Scaffold(
       appBar: AppBar(
         title: const Text('Iniciar Sesión'),
         backgroundColor: const Color(0xFF0D47A1), // dark blue
@@ -18,28 +70,26 @@ class LoginScreen extends StatelessWidget {
           children: [
             // Logo / icon
             const SizedBox(height: 40),
-            const Icon(
-              Icons.work,
-              size: 100,
-              color: Color(0xFF0D47A1),
-            ),
+            const Icon(Icons.work, size: 100, color: Color(0xFF0D47A1)),
             const SizedBox(height: 48),
             // Email field
             TextField(
-              decoration: InputDecoration(
+              controller: _emailController,
+              decoration: const InputDecoration(
                 labelText: 'Correo electrónico',
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.email),
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.email),
               ),
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 16),
             // Password field
             TextField(
-              decoration: InputDecoration(
+              controller: _passwordController,
+              decoration: const InputDecoration(
                 labelText: 'Contraseña',
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.lock),
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.lock),
               ),
               obscureText: true,
             ),
@@ -51,10 +101,17 @@ class LoginScreen extends StatelessWidget {
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
-              onPressed: () {
-                // TODO: implement sign‑in logic
-              },
-              child: const Text('Iniciar sesión'),
+              onPressed: _isLoading ? null : _login,
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Iniciar sesión'),
             ),
             const SizedBox(height: 12),
             // Registrarse button (outline style)
@@ -64,39 +121,17 @@ class LoginScreen extends StatelessWidget {
                 foregroundColor: const Color(0xFF0D47A1),
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                );
-              },
+              onPressed: _isLoading
+                  ? null
+                  : () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const RegisterScreen(),
+                        ),
+                      );
+                    },
               child: const Text('Registrarse'),
-            ),
-            const SizedBox(height: 24),
-            // Divider with text
-            Row(
-              children: const [
-                Expanded(child: Divider()),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Text('o'),
-                ),
-                Expanded(child: Divider()),
-              ],
-            ),
-            const SizedBox(height: 24),
-            // Continue with Google button
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF9800), // orange
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              icon: const Icon(Icons.login), // placeholder icon
-              label: const Text('Continuar con Google'),
-              onPressed: () {
-                // TODO: implement Google sign‑in
-              },
             ),
           ],
         ),
