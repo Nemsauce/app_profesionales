@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../constants/app_constants.dart';
+import '../constants/app_theme.dart';
 import '../models/professional.dart';
 import '../services/auth_service.dart';
 import '../services/professional_service.dart';
@@ -47,11 +48,17 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
 
   Widget _buildProfessionalCard(Professional professional) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6),
+      color: AppTheme.cardBackground,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: AppTheme.primaryBlue.withValues(alpha: 0.10)),
+      ),
       child: InkWell(
+        borderRadius: BorderRadius.circular(8),
         onTap: () => _openProfessionalDetail(professional),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -60,19 +67,26 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
+                  color: AppTheme.primaryBlue,
                 ),
               ),
-              const SizedBox(height: 8),
-              Text('Categoría: ${professional.category}'),
+              const SizedBox(height: 10),
+              Text(
+                'Categoría: ${professional.category}',
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 4),
               Text('Ciudad: ${professional.city}'),
+              const SizedBox(height: 4),
               Text(
                 'Rating: ${professional.rating.toStringAsFixed(1)} (${professional.reviewCount} reviews)',
               ),
+              const SizedBox(height: 4),
               Text('WhatsApp: ${professional.whatsappNumber}'),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(
+                child: OutlinedButton(
                   onPressed: () => _openProfessionalDetail(professional),
                   child: const Text('Ver perfil'),
                 ),
@@ -178,9 +192,10 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                   }
 
                   return ListView.separated(
+                    padding: const EdgeInsets.only(bottom: 8),
                     itemCount: professionals.length,
                     separatorBuilder: (context, index) =>
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                     itemBuilder: (context, index) {
                       final professional = professionals[index];
                       return _buildProfessionalCard(professional);
