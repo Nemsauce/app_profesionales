@@ -56,4 +56,57 @@ class ProfessionalService {
           }
         });
   }
+
+  Future<void> updateProfessionalProfile({
+    required String professionalId,
+    required String name,
+    required String description,
+    required String category,
+    required String city,
+    required String phoneNumber,
+    required String whatsappNumber,
+  }) async {
+    final trimmedName = name.trim();
+    final trimmedDescription = description.trim();
+    final trimmedCategory = category.trim();
+    final trimmedCity = city.trim();
+    final trimmedPhoneNumber = phoneNumber.trim();
+    final trimmedWhatsappNumber = whatsappNumber.trim();
+
+    if (trimmedName.isEmpty ||
+        trimmedCategory.isEmpty ||
+        trimmedCity.isEmpty ||
+        trimmedPhoneNumber.isEmpty ||
+        trimmedWhatsappNumber.isEmpty) {
+      throw Exception('Completa todos los campos obligatorios del perfil.');
+    }
+
+    try {
+      final batch = _firestore.batch();
+      final updatedAt = FieldValue.serverTimestamp();
+
+      batch.update(_firestore.collection('professionals').doc(professionalId), {
+        'name': trimmedName,
+        'description': trimmedDescription,
+        'category': trimmedCategory,
+        'city': trimmedCity,
+        'phoneNumber': trimmedPhoneNumber,
+        'whatsappNumber': trimmedWhatsappNumber,
+        'updatedAt': updatedAt,
+      });
+
+      batch.update(_firestore.collection('users').doc(professionalId), {
+        'name': trimmedName,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      await batch.commit();
+    } on FirebaseException catch (e) {
+      throw Exception(
+        'No se pudo actualizar el perfil profesional: ${e.message ?? e.code}',
+      );
+    } catch (e) {
+      throw Exception('No se pudo actualizar el perfil profesional.');
+    }
+  }
 }
