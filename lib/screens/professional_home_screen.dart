@@ -38,45 +38,103 @@ class ProfessionalHomeScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildInfoCard({
+    required String title,
+    required List<Widget> children,
+  }) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileRow(String label, String value) {
+    final displayValue = value.trim().isEmpty ? 'Sin completar' : value.trim();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 2),
+          Text(displayValue),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotice(String message) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      color: const Color(0xFFFFF3E0),
+      child: Padding(padding: const EdgeInsets.all(12), child: Text(message)),
+    );
+  }
+
   Widget _buildProfile(BuildContext context, Professional professional) {
-    final description = professional.description.trim().isEmpty
-        ? 'Sin descripción por ahora.'
-        : professional.description.trim();
+    final hasDescription = professional.description.trim().isNotEmpty;
+    final hasPhoneNumber = professional.phoneNumber.trim().isNotEmpty;
+    final hasWhatsappNumber = professional.whatsappNumber.trim().isNotEmpty;
+    final description = hasDescription
+        ? professional.description.trim()
+        : 'Sin descripción por ahora.';
 
     return ListView(
       children: [
-        ListTile(
-          title: const Text('Nombre'),
-          subtitle: Text(professional.name),
+        if (!hasDescription)
+          _buildNotice(
+            'Agrega una descripción para que los clientes entiendan mejor tus servicios.',
+          ),
+        if (!hasPhoneNumber || !hasWhatsappNumber)
+          _buildNotice(
+            'Agrega tu teléfono y WhatsApp para que los clientes puedan contactarte.',
+          ),
+        _buildInfoCard(
+          title: 'Información básica',
+          children: [
+            _buildProfileRow('Nombre', professional.name),
+            _buildProfileRow('Email', professional.email),
+            _buildProfileRow('Categoría', professional.category),
+            _buildProfileRow('Ciudad', professional.city),
+          ],
         ),
-        ListTile(
-          title: const Text('Email'),
-          subtitle: Text(professional.email),
+        _buildInfoCard(
+          title: 'Descripción',
+          children: [_buildProfileRow('Descripción', description)],
         ),
-        ListTile(
-          title: const Text('Categoría'),
-          subtitle: Text(professional.category),
+        _buildInfoCard(
+          title: 'Contacto',
+          children: [
+            _buildProfileRow('Teléfono', professional.phoneNumber),
+            _buildProfileRow('WhatsApp', professional.whatsappNumber),
+          ],
         ),
-        ListTile(
-          title: const Text('Ciudad'),
-          subtitle: Text(professional.city),
-        ),
-        ListTile(title: const Text('Descripción'), subtitle: Text(description)),
-        ListTile(
-          title: const Text('Teléfono'),
-          subtitle: Text(professional.phoneNumber),
-        ),
-        ListTile(
-          title: const Text('WhatsApp'),
-          subtitle: Text(professional.whatsappNumber),
-        ),
-        ListTile(
-          title: const Text('Estado de suscripción'),
-          subtitle: Text(professional.subscriptionStatus),
-        ),
-        ListTile(
-          title: const Text('Fecha fin de prueba gratis'),
-          subtitle: Text(_formatDate(professional.freeTrialEndDate)),
+        _buildInfoCard(
+          title: 'Suscripción',
+          children: [
+            _buildProfileRow(
+              'Estado de suscripción',
+              professional.subscriptionStatus,
+            ),
+            _buildProfileRow(
+              'Fecha fin de prueba gratis',
+              _formatDate(professional.freeTrialEndDate),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
         ElevatedButton(
