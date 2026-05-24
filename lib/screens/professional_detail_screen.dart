@@ -57,6 +57,45 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
     }
   }
 
+  Widget _buildSection({
+    required String title,
+    required List<Widget> children,
+  }) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    final displayValue = value.trim().isEmpty ? 'Sin completar' : value.trim();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 2),
+          Text(displayValue),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final professional = widget.professional;
@@ -69,39 +108,35 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text(
-            professional.name,
-            style: Theme.of(context).textTheme.headlineSmall,
+          _buildSection(
+            title: 'Información básica',
+            children: [
+              Text(
+                professional.name,
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 8),
+              _buildInfoRow('Categoría', professional.category),
+              _buildInfoRow('Ciudad', professional.city),
+            ],
           ),
-          const SizedBox(height: 8),
-          Text(professional.category),
-          Text(professional.city),
-          const SizedBox(height: 16),
-          const Divider(),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Descripción'),
-            subtitle: Text(description),
+          _buildSection(
+            title: 'Descripción',
+            children: [_buildInfoRow('Descripción', description)],
           ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Rating'),
-            subtitle: Text(professional.rating.toStringAsFixed(1)),
+          _buildSection(
+            title: 'Reputación',
+            children: [
+              _buildInfoRow('Rating', professional.rating.toStringAsFixed(1)),
+              _buildInfoRow('Reviews', professional.reviewCount.toString()),
+            ],
           ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Reviews'),
-            subtitle: Text(professional.reviewCount.toString()),
-          ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Teléfono'),
-            subtitle: Text(professional.phoneNumber),
-          ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('WhatsApp'),
-            subtitle: Text(professional.whatsappNumber),
+          _buildSection(
+            title: 'Contacto',
+            children: [
+              _buildInfoRow('Teléfono', professional.phoneNumber),
+              _buildInfoRow('WhatsApp', professional.whatsappNumber),
+            ],
           ),
           const SizedBox(height: 16),
           ElevatedButton(
