@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'constants/app_theme.dart';
 import 'firebase_options.dart';
 import 'screens/auth_wrapper.dart';
 
@@ -16,14 +17,7 @@ class OficiosColombiaApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Oficios Colombia',
-      theme: ThemeData(
-        // Dark blue primary, orange accent
-        primarySwatch: Colors.indigo,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF0D47A1), // dark blue
-          secondary: const Color(0xFFFF9800), // orange
-        ),
-      ),
+      theme: AppTheme.lightTheme,
       home: const AuthWrapper(),
     );
   }
