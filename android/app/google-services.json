@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "198572677930",
+    "project_id": "appprofesionales-7b5db",
+    "storage_bucket": "appprofesionales-7b5db.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:198572677930:android:e034a2fffc331b1f821c53",
+        "android_client_info": {
+          "package_name": "com.example.app_profesionales"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgtnCaAcQxTFgKXmQTAsqp_32KXwGGfUc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
