@@ -1,32 +1,39 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static const Color primaryBlue = Color(0xFF0D47A1);
-  static const Color accentOrange = Color(0xFFFF9800);
-  static const Color background = Color(0xFFF7F9FC);
-  static const Color cardBackground = Colors.white;
-  static const Color successGreen = Color(0xFF2E7D32);
-  static const Color warningOrange = Color(0xFFFFF3E0);
+  static const Color primaryTerracotta = Color(0xFFC0392B);
+  static const Color secondaryOrange = Color(0xFFE67E22);
+  static const Color navy = Color(0xFF1A3A5C);
+  static const Color creamBackground = Color(0xFFFDF6EC);
+  static const Color successGreen = Color(0xFF27AE60);
+  static const Color gold = Color(0xFFC9A84C);
   static const Color errorRed = Color(0xFFC62828);
+  static const Color cardBackground = Colors.white;
+
+  static const Color primaryBlue = primaryTerracotta;
+  static const Color accentOrange = secondaryOrange;
+  static const Color background = creamBackground;
+  static const Color warningOrange = Color(0xFFFFF3E0);
 
   static final ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: primaryBlue,
-      primary: primaryBlue,
-      secondary: accentOrange,
+      seedColor: primaryTerracotta,
+      primary: primaryTerracotta,
+      secondary: secondaryOrange,
+      tertiary: navy,
       surface: cardBackground,
       error: errorRed,
     ),
-    scaffoldBackgroundColor: background,
+    scaffoldBackgroundColor: creamBackground,
     appBarTheme: const AppBarTheme(
-      backgroundColor: primaryBlue,
+      backgroundColor: primaryTerracotta,
       foregroundColor: Colors.white,
       elevation: 0,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: primaryBlue,
+        backgroundColor: primaryTerracotta,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -34,8 +41,8 @@ class AppTheme {
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: primaryBlue,
-        side: const BorderSide(color: primaryBlue),
+        foregroundColor: primaryTerracotta,
+        side: const BorderSide(color: primaryTerracotta),
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
@@ -44,18 +51,21 @@ class AppTheme {
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: primaryBlue, width: 2),
+        borderSide: const BorderSide(color: primaryTerracotta, width: 2),
       ),
+      prefixIconColor: navy,
+      suffixIconColor: navy,
     ),
     cardTheme: CardThemeData(
       color: cardBackground,
-      elevation: 1,
+      elevation: 1.5,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     ),
     textTheme: const TextTheme(
-      titleLarge: TextStyle(fontWeight: FontWeight.bold),
-      titleMedium: TextStyle(fontWeight: FontWeight.bold),
+      headlineSmall: TextStyle(color: navy, fontWeight: FontWeight.bold),
+      titleLarge: TextStyle(color: navy, fontWeight: FontWeight.bold),
+      titleMedium: TextStyle(color: navy, fontWeight: FontWeight.bold),
     ),
   );
 }
