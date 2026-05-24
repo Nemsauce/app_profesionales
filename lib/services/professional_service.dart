@@ -31,4 +31,29 @@ class ProfessionalService {
           return professionals;
         });
   }
+
+  Stream<Professional?> getProfessionalById(String professionalId) {
+    return _firestore
+        .collection('professionals')
+        .doc(professionalId)
+        .snapshots()
+        .map((document) {
+          if (!document.exists || document.data() == null) {
+            return null;
+          }
+
+          final data = Map<String, dynamic>.from(document.data()!);
+          final id = data['id'];
+
+          if (id is! String || id.trim().isEmpty) {
+            data['id'] = document.id;
+          }
+
+          try {
+            return Professional.fromJson(data);
+          } catch (e) {
+            throw Exception('No se pudo convertir el perfil profesional: $e');
+          }
+        });
+  }
 }
