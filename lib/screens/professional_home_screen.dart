@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../constants/app_theme.dart';
 import '../models/professional.dart';
 import '../services/auth_service.dart';
 import '../services/professional_service.dart';
@@ -43,17 +44,26 @@ class ProfessionalHomeScreen extends StatelessWidget {
     required List<Widget> children,
   }) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      color: AppTheme.cardBackground,
+      margin: const EdgeInsets.only(bottom: 14),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: AppTheme.primaryBlue.withValues(alpha: 0.10)),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
               title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryBlue,
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             ...children,
           ],
         ),
@@ -65,7 +75,7 @@ class ProfessionalHomeScreen extends StatelessWidget {
     final displayValue = value.trim().isEmpty ? 'Sin completar' : value.trim();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 7),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -80,8 +90,9 @@ class ProfessionalHomeScreen extends StatelessWidget {
   Widget _buildNotice(String message) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: const Color(0xFFFFF3E0),
-      child: Padding(padding: const EdgeInsets.all(12), child: Text(message)),
+      color: AppTheme.warningOrange,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: Padding(padding: const EdgeInsets.all(14), child: Text(message)),
     );
   }
 
@@ -136,7 +147,7 @@ class ProfessionalHomeScreen extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
         ElevatedButton(
           onPressed: () {
             Navigator.push(
