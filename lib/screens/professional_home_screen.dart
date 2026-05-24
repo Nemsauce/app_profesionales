@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/professional.dart';
 import '../services/auth_service.dart';
 import '../services/professional_service.dart';
+import 'professional_edit_profile_screen.dart';
 
 class ProfessionalHomeScreen extends StatelessWidget {
   const ProfessionalHomeScreen({super.key});
@@ -37,7 +38,7 @@ class ProfessionalHomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfile(Professional professional) {
+  Widget _buildProfile(BuildContext context, Professional professional) {
     final description = professional.description.trim().isEmpty
         ? 'Sin descripción por ahora.'
         : professional.description.trim();
@@ -77,6 +78,19 @@ class ProfessionalHomeScreen extends StatelessWidget {
           title: const Text('Fecha fin de prueba gratis'),
           subtitle: Text(_formatDate(professional.freeTrialEndDate)),
         ),
+        const SizedBox(height: 16),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    ProfessionalEditProfileScreen(professional: professional),
+              ),
+            );
+          },
+          child: const Text('Editar perfil'),
+        ),
       ],
     );
   }
@@ -108,7 +122,7 @@ class ProfessionalHomeScreen extends StatelessWidget {
           );
         }
 
-        return _buildProfile(professional);
+        return _buildProfile(context, professional);
       },
     );
   }
