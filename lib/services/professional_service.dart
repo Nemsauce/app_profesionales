@@ -10,26 +10,28 @@ class ProfessionalService {
         .collection('professionals')
         .where('subscriptionActive', isEqualTo: true)
         .snapshots()
-        .map((snapshot) {
-          final professionals = <Professional>[];
+        .map(_professionalsFromSnapshot);
+  }
 
-          for (final doc in snapshot.docs) {
-            final data = Map<String, dynamic>.from(doc.data());
-            final id = data['id'];
+  Stream<List<Professional>> getActiveProfessionalsFiltered({
+    String? category,
+    String? city,
+  }) {
+    Query<Map<String, dynamic>> query = _firestore
+        .collection('professionals')
+        .where('subscriptionActive', isEqualTo: true);
 
-            if (id is! String || id.trim().isEmpty) {
-              data['id'] = doc.id;
-            }
+    final trimmedCategory = category?.trim();
+    if (trimmedCategory != null && trimmedCategory.isNotEmpty) {
+      query = query.where('category', isEqualTo: trimmedCategory);
+    }
 
-            try {
-              professionals.add(Professional.fromJson(data));
-            } catch (_) {
-              continue;
-            }
-          }
+    final trimmedCity = city?.trim();
+    if (trimmedCity != null && trimmedCity.isNotEmpty) {
+      query = query.where('city', isEqualTo: trimmedCity);
+    }
 
-          return professionals;
-        });
+    return query.snapshots().map(_professionalsFromSnapshot);
   }
 
   Stream<Professional?> getProfessionalById(String professionalId) {
@@ -108,5 +110,28 @@ class ProfessionalService {
     } catch (e) {
       throw Exception('No se pudo actualizar el perfil profesional.');
     }
+  }
+
+  List<Professional> _professionalsFromSnapshot(
+    QuerySnapshot<Map<String, dynamic>> snapshot,
+  ) {
+    final professionals = <Professional>[];
+
+    for (final doc in snapshot.docs) {
+      final data = Map<String, dynamic>.from(doc.data());
+      final id = data['id'];
+
+      if (id is! String || id.trim().isEmpty) {
+        data['id'] = doc.id;
+      }
+
+      try {
+        professionals.add(Professional.fromJson(data));
+      } catch (_) {
+        continue;
+      }
+    }
+
+    return professionals;
   }
 }
