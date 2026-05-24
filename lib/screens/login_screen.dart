@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../constants/app_theme.dart';
 import 'register_screen.dart';
 import '../services/auth_service.dart';
 
@@ -14,6 +15,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -61,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Iniciar Sesión'),
-        backgroundColor: const Color(0xFF0D47A1), // dark blue
+        backgroundColor: AppTheme.primaryBlue,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -70,68 +72,95 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             // Logo / icon
             const SizedBox(height: 40),
-            const Icon(Icons.work, size: 100, color: Color(0xFF0D47A1)),
-            const SizedBox(height: 48),
-            // Email field
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(
-                labelText: 'Correo electrónico',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.email),
-              ),
-              keyboardType: TextInputType.emailAddress,
+            const Icon(Icons.work, size: 88, color: AppTheme.primaryBlue),
+            const SizedBox(height: 24),
+            const Text(
+              'Bienvenido',
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
-            // Password field
-            TextField(
-              controller: _passwordController,
-              decoration: const InputDecoration(
-                labelText: 'Contraseña',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.lock),
-              ),
-              obscureText: true,
+            const SizedBox(height: 8),
+            const Text(
+              'Inicia sesión para continuar',
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            // Iniciar sesión button
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0D47A1), // dark blue
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              onPressed: _isLoading ? null : _login,
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Email field
+                    TextField(
+                      controller: _emailController,
+                      enabled: !_isLoading,
+                      decoration: const InputDecoration(
+                        labelText: 'Correo electrónico',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.email),
                       ),
-                    )
-                  : const Text('Iniciar sesión'),
-            ),
-            const SizedBox(height: 12),
-            // Registrarse button (outline style)
-            OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xFF0D47A1)),
-                foregroundColor: const Color(0xFF0D47A1),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              onPressed: _isLoading
-                  ? null
-                  : () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const RegisterScreen(),
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                    const SizedBox(height: 16),
+                    // Password field
+                    TextField(
+                      controller: _passwordController,
+                      enabled: !_isLoading,
+                      decoration: InputDecoration(
+                        labelText: 'Contraseña',
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.lock),
+                        suffixIcon: IconButton(
+                          onPressed: _isLoading
+                              ? null
+                              : () {
+                                  setState(
+                                    () => _obscurePassword = !_obscurePassword,
+                                  );
+                                },
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                          ),
                         ),
-                      );
-                    },
-              child: const Text('Registrarse'),
+                      ),
+                      obscureText: _obscurePassword,
+                    ),
+                    const SizedBox(height: 24),
+                    // Iniciar sesión button
+                    ElevatedButton(
+                      onPressed: _isLoading ? null : _login,
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text('Iniciar sesión'),
+                    ),
+                    const SizedBox(height: 12),
+                    // Registrarse button (outline style)
+                    OutlinedButton(
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const RegisterScreen(),
+                                ),
+                              );
+                            },
+                      child: const Text('Registrarse'),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
