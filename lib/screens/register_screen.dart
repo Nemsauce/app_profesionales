@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../constants/app_constants.dart';
+import '../constants/app_theme.dart';
 import '../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -15,6 +16,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   // 0 = none, 1 = client, 2 = professional
   int _selectedType = 0;
   bool _isLoading = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   // Form fields
   final _fullNameController = TextEditingController();
@@ -125,16 +128,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF0D47A1) : Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFF0D47A1)),
+          color: isSelected ? AppTheme.primaryBlue : AppTheme.cardBackground,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppTheme.primaryBlue),
         ),
         child: Row(
           children: [
             Icon(
               icon,
               size: 48,
-              color: isSelected ? Colors.white : const Color(0xFF0D47A1),
+              color: isSelected ? Colors.white : AppTheme.primaryBlue,
             ),
             const SizedBox(width: 16),
             Text(
@@ -142,7 +145,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.white : const Color(0xFF0D47A1),
+                color: isSelected ? Colors.white : AppTheme.primaryBlue,
               ),
             ),
           ],
@@ -153,118 +156,173 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Widget _buildForm() {
     if (_selectedType == 0) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SizedBox(height: 24),
-        TextField(
-          controller: _fullNameController,
-          decoration: const InputDecoration(
-            labelText: 'Nombre completo',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.person),
+    return Padding(
+      padding: const EdgeInsets.only(top: 24),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Datos de la cuenta',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _fullNameController,
+                enabled: !_isLoading,
+                decoration: const InputDecoration(
+                  labelText: 'Nombre completo',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.person),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _emailController,
+                enabled: !_isLoading,
+                decoration: const InputDecoration(
+                  labelText: 'Correo electrónico',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.email),
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _passwordController,
+                enabled: !_isLoading,
+                decoration: InputDecoration(
+                  labelText: 'Contraseña',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.lock),
+                  suffixIcon: IconButton(
+                    onPressed: _isLoading
+                        ? null
+                        : () {
+                            setState(
+                              () => _obscurePassword = !_obscurePassword,
+                            );
+                          },
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                  ),
+                ),
+                obscureText: _obscurePassword,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _confirmPasswordController,
+                enabled: !_isLoading,
+                decoration: InputDecoration(
+                  labelText: 'Confirmar contraseña',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.lock),
+                  suffixIcon: IconButton(
+                    onPressed: _isLoading
+                        ? null
+                        : () {
+                            setState(
+                              () => _obscureConfirmPassword =
+                                  !_obscureConfirmPassword,
+                            );
+                          },
+                    icon: Icon(
+                      _obscureConfirmPassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                  ),
+                ),
+                obscureText: _obscureConfirmPassword,
+              ),
+              if (_selectedType == 2) ...[
+                const SizedBox(height: 16),
+                // Category dropdown
+                DropdownButtonFormField<String>(
+                  decoration: const InputDecoration(
+                    labelText: 'Categoría de servicio',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: AppConstants.serviceCategories
+                      .map(
+                        (cat) => DropdownMenuItem(value: cat, child: Text(cat)),
+                      )
+                      .toList(),
+                  initialValue: _selectedCategory,
+                  onChanged: _isLoading
+                      ? null
+                      : (v) => setState(() => _selectedCategory = v),
+                ),
+              ],
+              const SizedBox(height: 16),
+              // City dropdown
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: 'Ciudad',
+                  border: OutlineInputBorder(),
+                ),
+                items: AppConstants.mainCities
+                    .map(
+                      (city) =>
+                          DropdownMenuItem(value: city, child: Text(city)),
+                    )
+                    .toList(),
+                initialValue: _selectedCity,
+                onChanged: _isLoading
+                    ? null
+                    : (v) => setState(() => _selectedCity = v),
+              ),
+              if (_selectedType == 2) ...[
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _phoneController,
+                  enabled: !_isLoading,
+                  decoration: const InputDecoration(
+                    labelText: 'Teléfono',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.phone),
+                  ),
+                  keyboardType: TextInputType.phone,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _whatsappController,
+                  enabled: !_isLoading,
+                  decoration: const InputDecoration(
+                    labelText: 'WhatsApp',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.chat),
+                  ),
+                  keyboardType: TextInputType.phone,
+                ),
+              ],
+              const SizedBox(height: 24),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryBlue,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                onPressed: _isLoading ? null : _register,
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Crear cuenta'),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _emailController,
-          decoration: const InputDecoration(
-            labelText: 'Correo electrónico',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.email),
-          ),
-          keyboardType: TextInputType.emailAddress,
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _passwordController,
-          decoration: const InputDecoration(
-            labelText: 'Contraseña',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.lock),
-          ),
-          obscureText: true,
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _confirmPasswordController,
-          decoration: const InputDecoration(
-            labelText: 'Confirmar contraseña',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.lock),
-          ),
-          obscureText: true,
-        ),
-        if (_selectedType == 2) ...[
-          const SizedBox(height: 16),
-          // Category dropdown
-          DropdownButtonFormField<String>(
-            decoration: const InputDecoration(
-              labelText: 'Categoría de servicio',
-              border: OutlineInputBorder(),
-            ),
-            items: AppConstants.serviceCategories
-                .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
-                .toList(),
-            initialValue: _selectedCategory,
-            onChanged: _isLoading
-                ? null
-                : (v) => setState(() => _selectedCategory = v),
-          ),
-        ],
-        const SizedBox(height: 16),
-        // City dropdown
-        DropdownButtonFormField<String>(
-          decoration: const InputDecoration(
-            labelText: 'Ciudad',
-            border: OutlineInputBorder(),
-          ),
-          items: AppConstants.mainCities
-              .map((city) => DropdownMenuItem(value: city, child: Text(city)))
-              .toList(),
-          initialValue: _selectedCity,
-          onChanged: _isLoading
-              ? null
-              : (v) => setState(() => _selectedCity = v),
-        ),
-        if (_selectedType == 2) ...[
-          const SizedBox(height: 16),
-          TextField(
-            controller: _phoneController,
-            decoration: const InputDecoration(
-              labelText: 'Teléfono',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.phone),
-            ),
-            keyboardType: TextInputType.phone,
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _whatsappController,
-            decoration: const InputDecoration(
-              labelText: 'WhatsApp',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.chat),
-            ),
-            keyboardType: TextInputType.phone,
-          ),
-        ],
-        const SizedBox(height: 24),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF0D47A1),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-          ),
-          onPressed: _isLoading ? null : _register,
-          child: _isLoading
-              ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Text('Crear cuenta'),
-        ),
-      ],
+      ),
     );
   }
 
@@ -273,7 +331,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Crear cuenta'),
-        backgroundColor: const Color(0xFF0D47A1),
+        backgroundColor: AppTheme.primaryBlue,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -281,14 +339,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-              'Selecciona tu tipo de cuenta',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              'Crear cuenta',
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Elige tu tipo de cuenta y completa tus datos',
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            _accountOption(label: 'Soy cliente', icon: Icons.person, type: 1),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      'Selecciona tu tipo de cuenta',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    _accountOption(
+                      label: 'Soy cliente',
+                      icon: Icons.person,
+                      type: 1,
+                    ),
+                    const SizedBox(height: 16),
+                    _accountOption(
+                      label: 'Soy profesional',
+                      icon: Icons.work,
+                      type: 2,
+                    ),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: 16),
-            _accountOption(label: 'Soy profesional', icon: Icons.work, type: 2),
             _buildForm(),
           ],
         ),
