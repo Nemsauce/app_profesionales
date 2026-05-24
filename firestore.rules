@@ -1,18 +1,161 @@
-rules_version='2'
+rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidRole(role) {
+      return role == 'client' || role == 'professional';
+    }
+
+    function userRoleAfter(userId) {
+      return getAfter(/databases/$(database)/documents/users/$(userId)).data.role;
+    }
+
+    function isActiveProfessional() {
+      return resource.data.subscriptionActive == true;
+    }
+
+    function validUserCreate(userId) {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'name',
+        'email',
+        'role',
+        'createdAt',
+      ])
+        && request.resource.data.id == userId
+        && request.resource.data.name is string
+        && request.resource.data.email is string
+        && isValidRole(request.resource.data.role)
+        && request.resource.data.createdAt is timestamp;
+    }
+
+    function onlyAllowedUserUpdates() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'name',
+        'updatedAt',
+      ])
+        && request.resource.data.name is string
+        && request.resource.data.updatedAt is timestamp;
+    }
+
+    function validClientProfile(userId) {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'name',
+        'photoUrl',
+        'email',
+        'city',
+      ])
+        && request.resource.data.id == userId
+        && request.resource.data.name is string
+        && request.resource.data.photoUrl is string
+        && request.resource.data.email is string
+        && request.resource.data.city is string;
+    }
+
+    function validProfessionalCreate(userId) {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'name',
+        'email',
+        'photoUrl',
+        'description',
+        'category',
+        'city',
+        'phoneNumber',
+        'whatsappNumber',
+        'portfolioPhotos',
+        'rating',
+        'reviewCount',
+        'registrationDate',
+        'freeTrialStartDate',
+        'freeTrialEndDate',
+        'subscriptionStatus',
+        'subscriptionActive',
+      ])
+        && request.resource.data.id == userId
+        && request.resource.data.name is string
+        && request.resource.data.email is string
+        && request.resource.data.photoUrl is string
+        && request.resource.data.description is string
+        && request.resource.data.category is string
+        && request.resource.data.city is string
+        && request.resource.data.phoneNumber is string
+        && request.resource.data.whatsappNumber is string
+        && request.resource.data.portfolioPhotos is list
+        && request.resource.data.portfolioPhotos.size() == 0
+        && request.resource.data.rating is number
+        && request.resource.data.rating == 0
+        && request.resource.data.reviewCount == 0
+        && request.resource.data.registrationDate is timestamp
+        && request.resource.data.freeTrialStartDate is timestamp
+        && request.resource.data.freeTrialEndDate is timestamp
+        && request.resource.data.subscriptionStatus == 'trial'
+        && request.resource.data.subscriptionActive == true;
+    }
+
+    function onlyAllowedProfessionalProfileUpdates() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'name',
+        'description',
+        'category',
+        'city',
+        'phoneNumber',
+        'whatsappNumber',
+        'updatedAt',
+      ])
+        && request.resource.data.name is string
+        && request.resource.data.description is string
+        && request.resource.data.category is string
+        && request.resource.data.city is string
+        && request.resource.data.phoneNumber is string
+        && request.resource.data.whatsappNumber is string
+        && request.resource.data.updatedAt is timestamp;
+    }
+
+    match /users/{uid} {
+      allow get: if isOwner(uid);
+      allow create: if isOwner(uid) && validUserCreate(uid);
+      allow update: if isOwner(uid) && onlyAllowedUserUpdates();
+      allow list, delete: if false;
+    }
+
+    match /clients/{uid} {
+      allow get: if isOwner(uid);
+      allow create: if isOwner(uid)
+        && userRoleAfter(uid) == 'client'
+        && validClientProfile(uid);
+      allow update: if isOwner(uid) && validClientProfile(uid);
+      allow list, delete: if false;
+    }
+
+    match /professionals/{uid} {
+      allow get: if isOwner(uid) || (isSignedIn() && isActiveProfessional());
+      allow list: if isSignedIn();
+      allow create: if isOwner(uid)
+        && userRoleAfter(uid) == 'professional'
+        && validProfessionalCreate(uid);
+      allow update: if isOwner(uid) && onlyAllowedProfessionalProfileUpdates();
+      allow delete: if false;
+    }
+
+    match /reviews/{reviewId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.clientId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
     match /{document=**} {
-      // This rule allows anyone with your database reference to view, edit,
-      // and delete all data in your database. It is useful for getting
-      // started, but it is configured to expire after 30 days because it
-      // leaves your app open to attackers. At that time, all client
-      // requests to your database will be denied.
-      //
-      // Make sure to write security rules for your app before that time, or
-      // else all client requests to your database will be denied until you
-      // update your rules.
-      allow read, write: if request.time < timestamp.date(2026, 6, 22);
+      allow read, write: if false;
     }
   }
 }
