@@ -14,6 +14,11 @@ service cloud.firestore {
       return role == 'client' || role == 'professional';
     }
 
+    function isValidColombianMobileNumber(value) {
+      return value is string
+        && value.matches('^\\+573[0-9]{9}$');
+    }
+
     function userRoleAfter(userId) {
       return getAfter(/databases/$(database)/documents/users/$(userId)).data.role;
     }
@@ -96,8 +101,8 @@ service cloud.firestore {
         && request.resource.data.description is string
         && request.resource.data.category is string
         && request.resource.data.city is string
-        && request.resource.data.phoneNumber is string
-        && request.resource.data.whatsappNumber is string
+        && isValidColombianMobileNumber(request.resource.data.phoneNumber)
+        && isValidColombianMobileNumber(request.resource.data.whatsappNumber)
         && request.resource.data.portfolioPhotos is list
         && request.resource.data.portfolioPhotos.size() == 0
         && request.resource.data.rating is number
@@ -124,8 +129,8 @@ service cloud.firestore {
         && request.resource.data.description is string
         && request.resource.data.category is string
         && request.resource.data.city is string
-        && request.resource.data.phoneNumber is string
-        && request.resource.data.whatsappNumber is string
+        && isValidColombianMobileNumber(request.resource.data.phoneNumber)
+        && isValidColombianMobileNumber(request.resource.data.whatsappNumber)
         && request.resource.data.updatedAt is timestamp;
     }
 
