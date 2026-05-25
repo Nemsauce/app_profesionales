@@ -23,6 +23,38 @@ service cloud.firestore {
         && value.matches('^\\+573[0-9]{9}$');
     }
 
+    function isValidServiceCategory(value) {
+      return value is string
+        && value in [
+          'Carpintería',
+          'Plomería',
+          'Pintura',
+          'Cerrajería',
+          'Electricidad',
+          'Aires acondicionados',
+          'Jardinería',
+          'Mudanzas',
+          'Limpieza',
+          'Reformas',
+        ];
+    }
+
+    function isValidMainCity(value) {
+      return value is string
+        && value in [
+          'Bogotá',
+          'Medellín',
+          'Cali',
+          'Barranquilla',
+          'Cartagena',
+          'Bucaramanga',
+          'Pereira',
+          'Manizales',
+          'Cúcuta',
+          'Santa Marta',
+        ];
+    }
+
     function userRoleAfter(userId) {
       return getAfter(/databases/$(database)/documents/users/$(userId)).data.role;
     }
@@ -75,7 +107,7 @@ service cloud.firestore {
         && request.resource.data.name is string
         && request.resource.data.photoUrl is string
         && request.resource.data.email is string
-        && request.resource.data.city is string;
+        && isValidMainCity(request.resource.data.city);
     }
 
     function validProfessionalCreate(userId) {
@@ -103,8 +135,8 @@ service cloud.firestore {
         && request.resource.data.email is string
         && request.resource.data.photoUrl is string
         && request.resource.data.description is string
-        && request.resource.data.category is string
-        && request.resource.data.city is string
+        && isValidServiceCategory(request.resource.data.category)
+        && isValidMainCity(request.resource.data.city)
         && isValidColombianMobileNumber(request.resource.data.phoneNumber)
         && isValidColombianMobileNumber(request.resource.data.whatsappNumber)
         && request.resource.data.portfolioPhotos is list
@@ -131,8 +163,8 @@ service cloud.firestore {
       ])
         && isNonEmptyString(request.resource.data.name)
         && isNonEmptyString(request.resource.data.description)
-        && isNonEmptyString(request.resource.data.category)
-        && isNonEmptyString(request.resource.data.city)
+        && isValidServiceCategory(request.resource.data.category)
+        && isValidMainCity(request.resource.data.city)
         && isValidColombianMobileNumber(request.resource.data.phoneNumber)
         && isValidColombianMobileNumber(request.resource.data.whatsappNumber)
         && request.resource.data.updatedAt is timestamp;
