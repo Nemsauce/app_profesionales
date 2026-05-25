@@ -102,4 +102,42 @@ class ReviewService {
           return reviews;
         });
   }
+
+  Stream<Review?> getReviewByClientAndProfessional({
+    required String clientId,
+    required String professionalId,
+  }) {
+    final trimmedClientId = clientId.trim();
+    final trimmedProfessionalId = professionalId.trim();
+
+    if (trimmedClientId.isEmpty || trimmedProfessionalId.isEmpty) {
+      return Stream.value(null);
+    }
+
+    final reviewId = _buildReviewId(
+      clientId: trimmedClientId,
+      professionalId: trimmedProfessionalId,
+    );
+
+    return _reviews.doc(reviewId).snapshots().map((doc) {
+      final data = doc.data();
+
+      if (!doc.exists || data == null) {
+        return null;
+      }
+
+      try {
+        final reviewData = Map<String, dynamic>.from(data);
+        final id = reviewData['id'];
+
+        if (id is! String || id.trim().isEmpty) {
+          reviewData['id'] = doc.id;
+        }
+
+        return Review.fromJson(reviewData);
+      } catch (_) {
+        return null;
+      }
+    });
+  }
 }

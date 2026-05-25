@@ -22,13 +22,33 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
   final _contactService = ContactService();
   final _reviewService = ReviewService();
   final _authService = AuthService();
+  late final Future<String?> _currentUserRoleFuture;
   bool _isContactLoading = false;
   bool _isReviewLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentUserRoleFuture = _getCurrentUserRoleForReviews();
+  }
 
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<String?> _getCurrentUserRoleForReviews() async {
+    final user = _authService.currentUser;
+    if (user == null) return null;
+
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+    final role = userDoc.data()?['role'];
+
+    return role is String ? role : null;
   }
 
   Future<Map<String, dynamic>?> _getCurrentUserData() async {
@@ -414,6 +434,57 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
     );
   }
 
+  Widget _buildReviewAction() {
+    return FutureBuilder<String?>(
+      future: _currentUserRoleFuture,
+      builder: (context, roleSnapshot) {
+        final user = _authService.currentUser;
+
+        if (roleSnapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox.shrink();
+        }
+
+        if (roleSnapshot.hasError ||
+            user == null ||
+            roleSnapshot.data != 'client') {
+          return const SizedBox.shrink();
+        }
+
+        return StreamBuilder<Review?>(
+          stream: _reviewService.getReviewByClientAndProfessional(
+            clientId: user.uid,
+            professionalId: widget.professional.id,
+          ),
+          builder: (context, reviewSnapshot) {
+            if (reviewSnapshot.connectionState == ConnectionState.waiting &&
+                !reviewSnapshot.hasData) {
+              return const SizedBox.shrink();
+            }
+
+            if (reviewSnapshot.hasError) {
+              return const SizedBox.shrink();
+            }
+
+            if (reviewSnapshot.data != null) {
+              return const Padding(
+                padding: EdgeInsets.only(top: 12),
+                child: Text(
+                  'Ya enviaste una reseña para este profesional.',
+                  style: TextStyle(color: AppTheme.textWhiteMuted),
+                ),
+              );
+            }
+
+            return OutlinedButton(
+              onPressed: _isReviewLoading ? null : _openReviewDialog,
+              child: const Text('Escribir reseña'),
+            );
+          },
+        );
+      },
+    );
+  }
+
   double _calculateAverageRating(List<Review> reviews) {
     if (reviews.isEmpty) return 0;
 
@@ -445,10 +516,7 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
               _buildInfoRow('Rating', rating.toStringAsFixed(1)),
               _buildInfoRow('Reviews', reviewCount.toString()),
               const SizedBox(height: 12),
-              OutlinedButton(
-                onPressed: _isReviewLoading ? null : _openReviewDialog,
-                child: const Text('Escribir reseña'),
-              ),
+              _buildReviewAction(),
               if (showLoading)
                 const Padding(
                   padding: EdgeInsets.only(top: 16),
