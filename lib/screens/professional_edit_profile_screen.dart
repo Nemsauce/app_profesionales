@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../constants/app_constants.dart';
+import '../constants/app_theme.dart';
 import '../models/professional.dart';
 import '../services/professional_service.dart';
 
@@ -114,6 +115,56 @@ class _ProfessionalEditProfileScreenState
     }
   }
 
+  Widget _fieldLabel(String label) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: AppTheme.textWhite,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: IconButton(
+            tooltip: 'Volver',
+            onPressed: _isLoading ? null : () => Navigator.pop(context),
+            icon: const Icon(Icons.arrow_back),
+            color: AppTheme.warmOrange,
+            style: IconButton.styleFrom(
+              backgroundColor: AppTheme.glassWhiteStrong,
+              side: const BorderSide(color: AppTheme.glassBorder),
+            ),
+          ),
+        ),
+        const SizedBox(height: 18),
+        const Text(
+          'Editar perfil',
+          style: TextStyle(
+            color: AppTheme.textWhite,
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Actualiza la información que verán tus clientes',
+          style: TextStyle(color: AppTheme.textWhiteMuted, fontSize: 15),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final categoryOptions = _optionsWithCurrentValue(
@@ -126,94 +177,156 @@ class _ProfessionalEditProfileScreenState
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Editar perfil')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Nombre',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              initialValue: _selectedCategory,
-              decoration: const InputDecoration(
-                labelText: 'Categoría',
-                border: OutlineInputBorder(),
-              ),
-              items: categoryOptions
-                  .map(
-                    (category) => DropdownMenuItem(
-                      value: category,
-                      child: Text(category),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.topRight,
+            radius: 1.25,
+            colors: [
+              AppTheme.warmOrange.withAlpha(48),
+              AppTheme.terracottaRed.withAlpha(30),
+              AppTheme.darkBackgroundAlt,
+              AppTheme.darkBackground,
+            ],
+            stops: const [0, 0.28, 0.62, 1],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppTheme.screenPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildHeader(),
+                const SizedBox(height: 28),
+                Card(
+                  color: AppTheme.glassWhiteStrong,
+                  elevation: 10,
+                  shadowColor: AppTheme.terracottaRed.withAlpha(48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+                    side: const BorderSide(color: AppTheme.glassBorder),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _fieldLabel('Nombre'),
+                        TextField(
+                          controller: _nameController,
+                          enabled: !_isLoading,
+                          decoration: const InputDecoration(
+                            hintText: 'Nombre profesional',
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        _fieldLabel('Categoría'),
+                        DropdownButtonFormField<String>(
+                          initialValue: _selectedCategory,
+                          decoration: const InputDecoration(
+                            hintText: 'Selecciona una categoría',
+                          ),
+                          dropdownColor: AppTheme.darkBackgroundAlt,
+                          style: const TextStyle(color: AppTheme.textWhite),
+                          items: categoryOptions
+                              .map(
+                                (category) => DropdownMenuItem(
+                                  value: category,
+                                  child: Text(category),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: _isLoading
+                              ? null
+                              : (value) =>
+                                    setState(() => _selectedCategory = value),
+                        ),
+                        const SizedBox(height: 16),
+                        _fieldLabel('Ciudad'),
+                        DropdownButtonFormField<String>(
+                          initialValue: _selectedCity,
+                          decoration: const InputDecoration(
+                            hintText: 'Selecciona una ciudad',
+                          ),
+                          dropdownColor: AppTheme.darkBackgroundAlt,
+                          style: const TextStyle(color: AppTheme.textWhite),
+                          items: cityOptions
+                              .map(
+                                (city) => DropdownMenuItem(
+                                  value: city,
+                                  child: Text(city),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: _isLoading
+                              ? null
+                              : (value) =>
+                                    setState(() => _selectedCity = value),
+                        ),
+                        const SizedBox(height: 16),
+                        _fieldLabel('Descripción'),
+                        TextField(
+                          controller: _descriptionController,
+                          enabled: !_isLoading,
+                          decoration: const InputDecoration(
+                            hintText: 'Cuéntales a los clientes qué haces',
+                          ),
+                          minLines: 3,
+                          maxLines: 5,
+                        ),
+                        const SizedBox(height: 16),
+                        _fieldLabel('Teléfono'),
+                        TextField(
+                          controller: _phoneNumberController,
+                          enabled: !_isLoading,
+                          decoration: const InputDecoration(
+                            hintText: 'Número de teléfono',
+                          ),
+                          keyboardType: TextInputType.phone,
+                        ),
+                        const SizedBox(height: 16),
+                        _fieldLabel('WhatsApp'),
+                        TextField(
+                          controller: _whatsappNumberController,
+                          enabled: !_isLoading,
+                          decoration: const InputDecoration(
+                            hintText: 'Número de WhatsApp',
+                          ),
+                          keyboardType: TextInputType.phone,
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.terracottaRed,
+                            foregroundColor: AppTheme.textWhite,
+                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                AppTheme.defaultRadius,
+                              ),
+                            ),
+                          ),
+                          onPressed: _isLoading ? null : _saveProfile,
+                          child: _isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text('Guardar'),
+                        ),
+                      ],
                     ),
-                  )
-                  .toList(),
-              onChanged: _isLoading
-                  ? null
-                  : (value) => setState(() => _selectedCategory = value),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
             ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              initialValue: _selectedCity,
-              decoration: const InputDecoration(
-                labelText: 'Ciudad',
-                border: OutlineInputBorder(),
-              ),
-              items: cityOptions
-                  .map(
-                    (city) => DropdownMenuItem(value: city, child: Text(city)),
-                  )
-                  .toList(),
-              onChanged: _isLoading
-                  ? null
-                  : (value) => setState(() => _selectedCity = value),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Descripción',
-                border: OutlineInputBorder(),
-              ),
-              minLines: 3,
-              maxLines: 5,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _phoneNumberController,
-              decoration: const InputDecoration(
-                labelText: 'Teléfono',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _whatsappNumberController,
-              decoration: const InputDecoration(
-                labelText: 'WhatsApp',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _isLoading ? null : _saveProfile,
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Guardar'),
-            ),
-          ],
+          ),
         ),
       ),
     );
