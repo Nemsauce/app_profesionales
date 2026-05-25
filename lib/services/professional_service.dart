@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/professional.dart';
+import '../utils/phone_number_utils.dart';
 
 class ProfessionalService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -83,6 +84,13 @@ class ProfessionalService {
       throw Exception('Completa todos los campos obligatorios del perfil.');
     }
 
+    final normalizedPhoneNumber = PhoneNumberUtils.normalizeColombianMobile(
+      trimmedPhoneNumber,
+    );
+    final normalizedWhatsappNumber = PhoneNumberUtils.normalizeColombianMobile(
+      trimmedWhatsappNumber,
+    );
+
     try {
       final batch = _firestore.batch();
       final updatedAt = FieldValue.serverTimestamp();
@@ -92,8 +100,8 @@ class ProfessionalService {
         'description': trimmedDescription,
         'category': trimmedCategory,
         'city': trimmedCity,
-        'phoneNumber': trimmedPhoneNumber,
-        'whatsappNumber': trimmedWhatsappNumber,
+        'phoneNumber': normalizedPhoneNumber,
+        'whatsappNumber': normalizedWhatsappNumber,
         'updatedAt': updatedAt,
       });
 

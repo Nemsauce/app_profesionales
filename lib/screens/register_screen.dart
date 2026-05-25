@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../constants/app_constants.dart';
 import '../constants/app_theme.dart';
 import '../services/auth_service.dart';
+import '../utils/phone_number_utils.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -82,6 +83,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
+    String? normalizedPhoneNumber;
+    String? normalizedWhatsappNumber;
+    if (_selectedType == 2) {
+      try {
+        normalizedPhoneNumber = PhoneNumberUtils.normalizeColombianMobile(
+          phoneNumber,
+        );
+        normalizedWhatsappNumber = PhoneNumberUtils.normalizeColombianMobile(
+          whatsappNumber,
+        );
+      } catch (e) {
+        _showSnackBar(e.toString().replaceFirst('Exception: ', ''));
+        return;
+      }
+    }
+
     setState(() => _isLoading = true);
 
     try {
@@ -99,8 +116,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           password: password,
           category: _selectedCategory!,
           city: _selectedCity!,
-          phoneNumber: phoneNumber,
-          whatsappNumber: whatsappNumber,
+          phoneNumber: normalizedPhoneNumber!,
+          whatsappNumber: normalizedWhatsappNumber!,
         );
       }
 

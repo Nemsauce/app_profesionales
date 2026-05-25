@@ -1,8 +1,10 @@
 import 'package:url_launcher/url_launcher.dart';
 
+import '../utils/phone_number_utils.dart';
+
 class ContactService {
   Future<void> openWhatsApp(String rawPhoneNumber) async {
-    final number = _normalizeWhatsAppNumber(rawPhoneNumber);
+    final number = PhoneNumberUtils.normalizeWhatsAppForUrl(rawPhoneNumber);
     if (number.isEmpty) {
       throw Exception('No se pudo abrir WhatsApp.');
     }
@@ -15,7 +17,7 @@ class ContactService {
   }
 
   Future<void> callPhone(String rawPhoneNumber) async {
-    final number = _cleanPhoneNumber(rawPhoneNumber);
+    final number = PhoneNumberUtils.normalizeColombianMobile(rawPhoneNumber);
     if (number.isEmpty) {
       throw Exception('No se pudo abrir el marcador telefónico.');
     }
@@ -30,30 +32,5 @@ class ContactService {
     if (!launched) {
       throw Exception('No se pudo abrir el marcador telefónico.');
     }
-  }
-
-  String _normalizeWhatsAppNumber(String rawPhoneNumber) {
-    var number = _cleanPhoneNumber(rawPhoneNumber);
-
-    if (number.startsWith('+')) {
-      number = number.substring(1);
-    }
-
-    if (number.length == 10 && number.startsWith('3')) {
-      number = '57$number';
-    }
-
-    return number;
-  }
-
-  String _cleanPhoneNumber(String rawPhoneNumber) {
-    final trimmedPhoneNumber = rawPhoneNumber.trim();
-    final digits = trimmedPhoneNumber.replaceAll(RegExp(r'\D'), '');
-
-    if (trimmedPhoneNumber.startsWith('+')) {
-      return '+$digits';
-    }
-
-    return digits;
   }
 }

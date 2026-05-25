@@ -4,6 +4,7 @@ import '../constants/app_constants.dart';
 import '../constants/app_theme.dart';
 import '../models/professional.dart';
 import '../services/professional_service.dart';
+import '../utils/phone_number_utils.dart';
 
 class ProfessionalEditProfileScreen extends StatefulWidget {
   const ProfessionalEditProfileScreen({super.key, required this.professional});
@@ -89,6 +90,20 @@ class _ProfessionalEditProfileScreenState
       return;
     }
 
+    late final String normalizedPhoneNumber;
+    late final String normalizedWhatsappNumber;
+    try {
+      normalizedPhoneNumber = PhoneNumberUtils.normalizeColombianMobile(
+        phoneNumber,
+      );
+      normalizedWhatsappNumber = PhoneNumberUtils.normalizeColombianMobile(
+        whatsappNumber,
+      );
+    } catch (e) {
+      _showSnackBar(e.toString().replaceFirst('Exception: ', ''));
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
@@ -98,8 +113,8 @@ class _ProfessionalEditProfileScreenState
         description: description,
         category: category,
         city: city,
-        phoneNumber: phoneNumber,
-        whatsappNumber: whatsappNumber,
+        phoneNumber: normalizedPhoneNumber,
+        whatsappNumber: normalizedWhatsappNumber,
       );
 
       if (!mounted) return;

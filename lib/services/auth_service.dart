@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/client.dart';
 import '../models/professional.dart';
+import '../utils/phone_number_utils.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -123,6 +124,12 @@ class AuthService {
     required String whatsappNumber,
   }) async {
     final normalizedEmail = email.trim().toLowerCase();
+    final normalizedPhoneNumber = PhoneNumberUtils.normalizeColombianMobile(
+      phoneNumber,
+    );
+    final normalizedWhatsappNumber = PhoneNumberUtils.normalizeColombianMobile(
+      whatsappNumber,
+    );
     final now = DateTime.now();
     User? user;
     try {
@@ -159,8 +166,8 @@ class AuthService {
         description: '',
         category: category,
         city: city,
-        phoneNumber: phoneNumber,
-        whatsappNumber: whatsappNumber,
+        phoneNumber: normalizedPhoneNumber,
+        whatsappNumber: normalizedWhatsappNumber,
         portfolioPhotos: [],
         rating: 0.0,
         reviewCount: 0,
