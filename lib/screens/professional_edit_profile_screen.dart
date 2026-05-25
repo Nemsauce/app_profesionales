@@ -82,6 +82,7 @@ class _ProfessionalEditProfileScreenState
     final city = _selectedCity?.trim() ?? '';
 
     if (name.isEmpty ||
+        description.isEmpty ||
         category.isEmpty ||
         city.isEmpty ||
         phoneNumber.isEmpty ||

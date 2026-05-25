@@ -14,6 +14,10 @@ service cloud.firestore {
       return role == 'client' || role == 'professional';
     }
 
+    function isNonEmptyString(value) {
+      return value is string && value.size() > 0;
+    }
+
     function isValidColombianMobileNumber(value) {
       return value is string
         && value.matches('^\\+573[0-9]{9}$');
@@ -125,10 +129,10 @@ service cloud.firestore {
         'whatsappNumber',
         'updatedAt',
       ])
-        && request.resource.data.name is string
-        && request.resource.data.description is string
-        && request.resource.data.category is string
-        && request.resource.data.city is string
+        && isNonEmptyString(request.resource.data.name)
+        && isNonEmptyString(request.resource.data.description)
+        && isNonEmptyString(request.resource.data.category)
+        && isNonEmptyString(request.resource.data.city)
         && isValidColombianMobileNumber(request.resource.data.phoneNumber)
         && isValidColombianMobileNumber(request.resource.data.whatsappNumber)
         && request.resource.data.updatedAt is timestamp;
