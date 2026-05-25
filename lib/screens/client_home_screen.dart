@@ -149,12 +149,6 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
               ),
               const SizedBox(height: 8),
               _professionalInfoRow(
-                icon: Icons.star,
-                text:
-                    '${professional.rating.toStringAsFixed(1)} (${professional.reviewCount} reviews)',
-              ),
-              const SizedBox(height: 8),
-              _professionalInfoRow(
                 icon: Icons.chat,
                 text: 'WhatsApp: ${professional.whatsappNumber}',
               ),
@@ -421,7 +415,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
     );
   }
 
-  Widget _buildFeaturedProfessionalsSection() {
+  Widget _buildRecentProfessionalsSection() {
     return StreamBuilder<List<Professional>>(
       stream: _professionalService.getActiveProfessionalsFiltered(
         city: _selectedCity,
@@ -450,26 +444,18 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
         }
 
         final professionals =
-            _filterProfessionalsBySearch(snapshot.data ?? [])
-                .where(
-                  (professional) =>
-                      professional.rating > 0 && professional.reviewCount > 0,
-                )
-                .toList()
-              ..sort((a, b) {
-                final ratingComparison = b.rating.compareTo(a.rating);
-                if (ratingComparison != 0) return ratingComparison;
-                return b.reviewCount.compareTo(a.reviewCount);
-              });
+            _filterProfessionalsBySearch(snapshot.data ?? []).toList()..sort(
+              (a, b) => b.registrationDate.compareTo(a.registrationDate),
+            );
 
-        final featuredProfessionals = professionals.take(3).toList();
+        final recentProfessionals = professionals.take(3).toList();
 
-        if (featuredProfessionals.isEmpty) {
+        if (recentProfessionals.isEmpty) {
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 24),
             child: Center(
               child: Text(
-                'Aún no hay profesionales destacados.',
+                'Aún no hay profesionales recientes.',
                 style: TextStyle(color: AppTheme.textWhiteMuted),
                 textAlign: TextAlign.center,
               ),
@@ -481,10 +467,10 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           padding: const EdgeInsets.only(bottom: 8),
-          itemCount: featuredProfessionals.length,
+          itemCount: recentProfessionals.length,
           separatorBuilder: (context, index) => const SizedBox(height: 14),
           itemBuilder: (context, index) {
-            final professional = featuredProfessionals[index];
+            final professional = recentProfessionals[index];
             return _buildProfessionalCard(professional);
           },
         );
@@ -525,7 +511,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                 _buildCategoryGrid(),
                 const SizedBox(height: 28),
                 const Text(
-                  'Profesionales destacados',
+                  'Profesionales recientes',
                   style: TextStyle(
                     color: AppTheme.textWhite,
                     fontSize: 20,
@@ -533,7 +519,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 14),
-                _buildFeaturedProfessionalsSection(),
+                _buildRecentProfessionalsSection(),
                 const SizedBox(height: 16),
               ],
             ),
