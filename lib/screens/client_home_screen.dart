@@ -16,8 +16,16 @@ class ClientHomeScreen extends StatefulWidget {
 
 class _ClientHomeScreenState extends State<ClientHomeScreen> {
   final ProfessionalService _professionalService = ProfessionalService();
+  final TextEditingController _searchController = TextEditingController();
   String? _selectedCategory;
   String? _selectedCity;
+  String _searchText = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   Future<void> _logout(BuildContext context) async {
     try {
@@ -31,9 +39,11 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
   }
 
   void _clearFilters() {
+    _searchController.clear();
     setState(() {
       _selectedCategory = null;
       _selectedCity = null;
+      _searchText = '';
     });
   }
 
@@ -46,50 +56,101 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
     );
   }
 
+  List<Professional> _filterProfessionalsBySearch(
+    List<Professional> professionals,
+  ) {
+    final query = _searchText.trim().toLowerCase();
+    if (query.isEmpty) return professionals;
+
+    return professionals.where((professional) {
+      return professional.name.toLowerCase().contains(query) ||
+          professional.category.toLowerCase().contains(query) ||
+          professional.city.toLowerCase().contains(query);
+    }).toList();
+  }
+
   Widget _buildProfessionalCard(Professional professional) {
     return Card(
-      color: AppTheme.cardBackground,
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      color: AppTheme.glassWhiteStrong,
+      margin: EdgeInsets.zero,
+      elevation: 8,
+      shadowColor: AppTheme.terracottaRed.withAlpha(40),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: AppTheme.primaryBlue.withValues(alpha: 0.10)),
+        borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+        side: const BorderSide(color: AppTheme.glassBorder),
       ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.largeRadius),
         onTap: () => _openProfessionalDetail(professional),
         child: Padding(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                professional.name,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryBlue,
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 46,
+                    width: 46,
+                    decoration: BoxDecoration(
+                      color: AppTheme.terracottaRed.withAlpha(70),
+                      borderRadius: BorderRadius.circular(
+                        AppTheme.defaultRadius,
+                      ),
+                      border: Border.all(color: AppTheme.glassBorder),
+                    ),
+                    child: const Icon(
+                      Icons.home_repair_service,
+                      color: AppTheme.warmOrange,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          professional.name,
+                          style: const TextStyle(
+                            color: AppTheme.textWhite,
+                            fontSize: 19,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          professional.category,
+                          style: const TextStyle(
+                            color: AppTheme.warmOrange,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 10),
-              Text(
-                'Categoría: ${professional.category}',
-                style: const TextStyle(fontWeight: FontWeight.w500),
+              const SizedBox(height: 16),
+              _professionalInfoRow(
+                icon: Icons.location_on,
+                text: professional.city,
               ),
-              const SizedBox(height: 4),
-              Text('Ciudad: ${professional.city}'),
-              const SizedBox(height: 4),
-              Text(
-                'Rating: ${professional.rating.toStringAsFixed(1)} (${professional.reviewCount} reviews)',
+              const SizedBox(height: 8),
+              _professionalInfoRow(
+                icon: Icons.star,
+                text:
+                    '${professional.rating.toStringAsFixed(1)} (${professional.reviewCount} reviews)',
               ),
-              const SizedBox(height: 4),
-              Text('WhatsApp: ${professional.whatsappNumber}'),
-              const SizedBox(height: 14),
-              Align(
-                alignment: Alignment.centerRight,
-                child: OutlinedButton(
-                  onPressed: () => _openProfessionalDetail(professional),
-                  child: const Text('Ver perfil'),
-                ),
+              const SizedBox(height: 8),
+              _professionalInfoRow(
+                icon: Icons.chat,
+                text: 'WhatsApp: ${professional.whatsappNumber}',
+              ),
+              const SizedBox(height: 18),
+              OutlinedButton(
+                onPressed: () => _openProfessionalDetail(professional),
+                child: const Text('Ver perfil'),
               ),
             ],
           ),
@@ -98,51 +159,127 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final hasFilters =
-        (_selectedCategory?.isNotEmpty ?? false) ||
-        (_selectedCity?.isNotEmpty ?? false);
+  Widget _professionalInfoRow({required IconData icon, required String text}) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: AppTheme.textWhiteMuted),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(color: AppTheme.textWhiteMuted),
+          ),
+        ),
+      ],
+    );
+  }
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Cliente')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+  IconData _iconForCategory(String category) {
+    switch (category) {
+      case 'Carpintería':
+        return Icons.handyman;
+      case 'Plomería':
+        return Icons.plumbing;
+      case 'Pintura':
+        return Icons.format_paint;
+      case 'Cerrajería':
+        return Icons.lock;
+      case 'Electricidad':
+        return Icons.electrical_services;
+      case 'Aires acondicionados':
+        return Icons.ac_unit;
+      case 'Jardinería':
+        return Icons.yard;
+      case 'Mudanzas':
+        return Icons.local_shipping;
+      case 'Limpieza':
+        return Icons.cleaning_services;
+      case 'Reformas':
+        return Icons.construction;
+      default:
+        return Icons.home_repair_service;
+    }
+  }
+
+  Widget _buildHeader() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Ubicación',
+                style: TextStyle(
+                  color: AppTheme.textWhiteMuted,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                _selectedCity ?? 'Colombia',
+                style: const TextStyle(
+                  color: AppTheme.textWhite,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Encuentra profesionales cerca de ti',
+                style: TextStyle(color: AppTheme.textWhiteMuted, fontSize: 15),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        IconButton(
+          tooltip: 'Cerrar sesión',
+          onPressed: () => _logout(context),
+          icon: const Icon(Icons.logout),
+          color: AppTheme.warmOrange,
+          style: IconButton.styleFrom(
+            backgroundColor: AppTheme.glassWhiteStrong,
+            side: const BorderSide(color: AppTheme.glassBorder),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchAndCityCard(bool hasFilters) {
+    return Card(
+      color: AppTheme.glassWhiteStrong,
+      elevation: 8,
+      shadowColor: AppTheme.terracottaRed.withAlpha(36),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+        side: const BorderSide(color: AppTheme.glassBorder),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            ElevatedButton(
-              onPressed: () => _logout(context),
-              child: const Text('Cerrar sesión'),
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              key: ValueKey('category-${_selectedCategory ?? ''}'),
-              initialValue: _selectedCategory,
+            TextField(
+              controller: _searchController,
               decoration: const InputDecoration(
-                labelText: 'Categoría',
-                border: OutlineInputBorder(),
+                hintText: 'Buscar servicios...',
+                prefixIcon: Icon(Icons.search),
               ),
-              items: AppConstants.serviceCategories
-                  .map(
-                    (category) => DropdownMenuItem(
-                      value: category,
-                      child: Text(category),
-                    ),
-                  )
-                  .toList(),
               onChanged: (value) {
-                setState(() => _selectedCategory = value);
+                setState(() => _searchText = value);
               },
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               key: ValueKey('city-${_selectedCity ?? ''}'),
               initialValue: _selectedCity,
-              decoration: const InputDecoration(
-                labelText: 'Ciudad',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: 'Ciudad'),
+              dropdownColor: AppTheme.darkBackgroundAlt,
+              style: const TextStyle(color: AppTheme.textWhite),
               items: AppConstants.mainCities
                   .map(
                     (city) => DropdownMenuItem(value: city, child: Text(city)),
@@ -152,59 +289,217 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                 setState(() => _selectedCity = value);
               },
             ),
-            const SizedBox(height: 12),
-            OutlinedButton(
-              onPressed: hasFilters ? _clearFilters : null,
-              child: const Text('Limpiar filtros'),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: StreamBuilder<List<Professional>>(
-                stream: _professionalService.getActiveProfessionalsFiltered(
-                  category: _selectedCategory,
-                  city: _selectedCity,
+            if (hasFilters) ...[
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: _clearFilters,
+                child: const Text('Limpiar filtros'),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryGrid() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text(
+          'Servicios Disponibles',
+          style: TextStyle(
+            color: AppTheme.textWhite,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 14),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: AppConstants.serviceCategories.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 2.55,
+          ),
+          itemBuilder: (context, index) {
+            final category = AppConstants.serviceCategories[index];
+            final isSelected = _selectedCategory == category;
+
+            return InkWell(
+              borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
+              onTap: () {
+                setState(() {
+                  _selectedCategory = isSelected ? null : category;
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppTheme.terracottaRed.withAlpha(82)
+                      : AppTheme.glassWhiteStrong,
+                  borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
+                  border: Border.all(
+                    color: isSelected
+                        ? AppTheme.warmOrange
+                        : AppTheme.glassBorder,
+                  ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: AppTheme.terracottaRed.withAlpha(44),
+                            blurRadius: 18,
+                            offset: const Offset(0, 8),
+                          ),
+                        ]
+                      : null,
                 ),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  if (snapshot.hasError) {
-                    return const Center(
+                child: Row(
+                  children: [
+                    Icon(
+                      _iconForCategory(category),
+                      color: isSelected
+                          ? AppTheme.textWhite
+                          : AppTheme.warmOrange,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
                       child: Text(
-                        'No se pudieron cargar los profesionales. Intenta de nuevo más tarde.',
-                        textAlign: TextAlign.center,
+                        category,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppTheme.textWhite,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
                       ),
-                    );
-                  }
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
 
-                  final professionals = snapshot.data ?? [];
+  Widget _buildProfessionalsSection(bool hasFilters) {
+    return StreamBuilder<List<Professional>>(
+      stream: _professionalService.getActiveProfessionalsFiltered(
+        category: _selectedCategory,
+        city: _selectedCity,
+      ),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 48),
+            child: Center(
+              child: CircularProgressIndicator(color: AppTheme.warmOrange),
+            ),
+          );
+        }
 
-                  if (professionals.isEmpty) {
-                    return Center(
-                      child: Text(
-                        hasFilters
-                            ? 'No hay profesionales disponibles con estos filtros.'
-                            : 'No hay profesionales disponibles por ahora.',
-                        textAlign: TextAlign.center,
-                      ),
-                    );
-                  }
-
-                  return ListView.separated(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    itemCount: professionals.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 2),
-                    itemBuilder: (context, index) {
-                      final professional = professionals[index];
-                      return _buildProfessionalCard(professional);
-                    },
-                  );
-                },
+        if (snapshot.hasError) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 32),
+            child: Center(
+              child: Text(
+                'No se pudieron cargar los profesionales. Intenta de nuevo más tarde.',
+                style: TextStyle(color: AppTheme.textWhiteMuted),
+                textAlign: TextAlign.center,
               ),
             ),
-          ],
+          );
+        }
+
+        final professionals = _filterProfessionalsBySearch(snapshot.data ?? []);
+
+        if (professionals.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 32),
+            child: Center(
+              child: Text(
+                hasFilters
+                    ? 'No hay profesionales disponibles con estos filtros.'
+                    : 'No hay profesionales disponibles por ahora.',
+                style: const TextStyle(color: AppTheme.textWhiteMuted),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        }
+
+        return ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(bottom: 8),
+          itemCount: professionals.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 14),
+          itemBuilder: (context, index) {
+            final professional = professionals[index];
+            return _buildProfessionalCard(professional);
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasFilters =
+        (_selectedCategory?.isNotEmpty ?? false) ||
+        (_selectedCity?.isNotEmpty ?? false) ||
+        _searchText.trim().isNotEmpty;
+
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.topRight,
+            radius: 1.25,
+            colors: [
+              AppTheme.warmOrange.withAlpha(48),
+              AppTheme.terracottaRed.withAlpha(30),
+              AppTheme.darkBackgroundAlt,
+              AppTheme.darkBackground,
+            ],
+            stops: const [0, 0.28, 0.62, 1],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppTheme.screenPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildHeader(),
+                const SizedBox(height: 20),
+                _buildSearchAndCityCard(hasFilters),
+                const SizedBox(height: 24),
+                _buildCategoryGrid(),
+                const SizedBox(height: 28),
+                const Text(
+                  'Profesionales disponibles',
+                  style: TextStyle(
+                    color: AppTheme.textWhite,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                _buildProfessionalsSection(hasFilters),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
         ),
       ),
     );
