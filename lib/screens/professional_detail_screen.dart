@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../constants/app_theme.dart';
 import '../models/professional.dart';
+import '../models/review.dart';
 import '../services/auth_service.dart';
 import '../services/contact_service.dart';
 import '../services/review_service.dart';
@@ -344,6 +345,119 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
     );
   }
 
+  String _formatReviewDate(DateTime date) {
+    final year = date.year.toString().padLeft(4, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+
+    return '$year-$month-$day';
+  }
+
+  Widget _buildReviewStars(double rating) {
+    return Row(
+      children: List.generate(5, (index) {
+        final starValue = index + 1;
+        return Icon(
+          Icons.star_rounded,
+          size: 18,
+          color: starValue <= rating.round()
+              ? AppTheme.verifiedGold
+              : AppTheme.textWhiteSubtle,
+        );
+      }),
+    );
+  }
+
+  Widget _buildReviewCard(Review review) {
+    final comment = review.comment.trim();
+
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.glassWhiteSoft,
+        borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
+        border: Border.all(color: AppTheme.glassBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: _buildReviewStars(review.rating)),
+              Text(
+                _formatReviewDate(review.createdAt),
+                style: const TextStyle(
+                  color: AppTheme.textWhiteSubtle,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            review.clientName,
+            style: const TextStyle(
+              color: AppTheme.textWhite,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          if (comment.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              comment,
+              style: const TextStyle(color: AppTheme.textWhiteMuted),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReviewsList() {
+    return StreamBuilder<List<Review>>(
+      stream: _reviewService.getReviewsByProfessional(widget.professional.id),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !snapshot.hasData) {
+          return const Padding(
+            padding: EdgeInsets.only(top: 16),
+            child: Center(
+              child: CircularProgressIndicator(color: AppTheme.warmOrange),
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return const Padding(
+            padding: EdgeInsets.only(top: 16),
+            child: Text(
+              'No se pudieron cargar las reseñas.',
+              style: TextStyle(color: AppTheme.textWhiteMuted),
+            ),
+          );
+        }
+
+        final reviews = (snapshot.data ?? []).take(5).toList();
+
+        if (reviews.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.only(top: 16),
+            child: Text(
+              'Aún no hay reseñas para este profesional.',
+              style: TextStyle(color: AppTheme.textWhiteMuted),
+            ),
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: reviews.map(_buildReviewCard).toList(),
+        );
+      },
+    );
+  }
+
   Widget _buildHeader(Professional professional) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -470,6 +584,7 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
                     onPressed: _isReviewLoading ? null : _openReviewDialog,
                     child: const Text('Escribir reseña'),
                   ),
+                  _buildReviewsList(),
                 ],
               ),
               _buildSection(

@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../models/review.dart';
+
 class ReviewService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -65,5 +67,39 @@ class ReviewService {
     } catch (_) {
       throw Exception('No se pudo crear la reseña. Intenta de nuevo.');
     }
+  }
+
+  Stream<List<Review>> getReviewsByProfessional(String professionalId) {
+    final trimmedProfessionalId = professionalId.trim();
+
+    if (trimmedProfessionalId.isEmpty) {
+      return Stream.value([]);
+    }
+
+    return _reviews
+        .where('professionalId', isEqualTo: trimmedProfessionalId)
+        .snapshots()
+        .map((snapshot) {
+          final reviews = <Review>[];
+
+          for (final doc in snapshot.docs) {
+            try {
+              final data = Map<String, dynamic>.from(doc.data());
+              final id = data['id'];
+
+              if (id is! String || id.trim().isEmpty) {
+                data['id'] = doc.id;
+              }
+
+              reviews.add(Review.fromJson(data));
+            } catch (_) {
+              // Ignore malformed reviews so one bad document does not break
+              // the professional detail view.
+            }
+          }
+
+          reviews.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return reviews;
+        });
   }
 }
