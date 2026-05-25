@@ -7,6 +7,7 @@ import '../models/review.dart';
 import '../services/auth_service.dart';
 import '../services/contact_service.dart';
 import '../services/review_service.dart';
+import 'review_form_screen.dart';
 
 class ProfessionalDetailScreen extends StatefulWidget {
   const ProfessionalDetailScreen({super.key, required this.professional});
@@ -24,7 +25,6 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
   final _authService = AuthService();
   late final Future<String?> _currentUserRoleFuture;
   bool _isContactLoading = false;
-  bool _isReviewLoading = false;
 
   @override
   void initState() {
@@ -51,225 +51,22 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
     return role is String ? role : null;
   }
 
-  Future<Map<String, dynamic>?> _getCurrentUserData() async {
-    final user = _authService.currentUser;
-    if (user == null) {
-      throw Exception('Debes iniciar sesión para escribir una reseña.');
-    }
+  Future<void> _openReviewForm() async {
+    final created = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ReviewFormScreen(
+          professionalId: widget.professional.id,
+          professionalName: widget.professional.name,
+        ),
+      ),
+    );
 
-    final userDoc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .get();
-    final data = userDoc.data();
-
-    if (data == null) {
-      throw Exception('No se encontró la información del usuario.');
-    }
-
-    if (data['role'] != 'client') {
-      throw Exception('Solo los clientes pueden escribir reseñas.');
-    }
-
-    final name = data['name'];
-    if (name is! String || name.trim().isEmpty) {
-      throw Exception('No se encontró el nombre del cliente.');
-    }
-
-    return data;
-  }
-
-  Future<bool> _submitReview({
-    required double rating,
-    required String comment,
-  }) async {
-    if (_isReviewLoading) return false;
-
-    final user = _authService.currentUser;
-    if (user == null) {
-      _showSnackBar('Debes iniciar sesión para escribir una reseña.');
-      return false;
-    }
-
-    setState(() => _isReviewLoading = true);
-
-    try {
-      final userData = await _getCurrentUserData();
-      final clientName = (userData?['name'] as String).trim();
-
-      await _reviewService.createReview(
-        professionalId: widget.professional.id,
-        clientId: user.uid,
-        clientName: clientName,
-        rating: rating,
-        comment: comment,
+    if (created == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Reseña enviada correctamente')),
       );
-
-      if (mounted) {
-        _showSnackBar('Reseña enviada correctamente');
-      }
-      return true;
-    } catch (e) {
-      if (mounted) {
-        _showSnackBar(e.toString().replaceFirst('Exception: ', ''));
-      }
-      return false;
-    } finally {
-      if (mounted) {
-        setState(() => _isReviewLoading = false);
-      }
     }
-  }
-
-  void _openReviewDialog() {
-    final commentController = TextEditingController();
-    double selectedRating = 5;
-
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (dialogContext, setDialogState) {
-            final isLoading = _isReviewLoading;
-
-            return Dialog(
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(24),
-              child: Container(
-                padding: const EdgeInsets.all(22),
-                decoration: BoxDecoration(
-                  color: AppTheme.glassWhiteStrong,
-                  borderRadius: BorderRadius.circular(AppTheme.largeRadius),
-                  border: Border.all(color: AppTheme.glassBorder),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.terracottaRed.withAlpha(42),
-                      blurRadius: 32,
-                      offset: const Offset(0, 18),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Text(
-                      'Escribir reseña',
-                      style: TextStyle(
-                        color: AppTheme.textWhite,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    const Text(
-                      'Calificación',
-                      style: TextStyle(
-                        color: AppTheme.textWhite,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(5, (index) {
-                        final ratingValue = index + 1;
-                        final isSelected = ratingValue <= selectedRating;
-
-                        return IconButton(
-                          tooltip: '$ratingValue',
-                          onPressed: isLoading
-                              ? null
-                              : () {
-                                  setDialogState(() {
-                                    selectedRating = ratingValue.toDouble();
-                                  });
-                                },
-                          icon: Icon(
-                            Icons.star_rounded,
-                            color: isSelected
-                                ? AppTheme.verifiedGold
-                                : AppTheme.textWhiteSubtle,
-                            size: 32,
-                          ),
-                        );
-                      }),
-                    ),
-                    const SizedBox(height: 14),
-                    const Text(
-                      'Comentario',
-                      style: TextStyle(
-                        color: AppTheme.textWhite,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: commentController,
-                      enabled: !isLoading,
-                      maxLength: 500,
-                      maxLines: 4,
-                      style: const TextStyle(color: AppTheme.textWhite),
-                      decoration: const InputDecoration(
-                        hintText: 'Comentario opcional',
-                        counterStyle: TextStyle(
-                          color: AppTheme.textWhiteSubtle,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: isLoading
-                                ? null
-                                : () => Navigator.of(dialogContext).pop(),
-                            child: const Text('Cancelar'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: isLoading
-                                ? null
-                                : () async {
-                                    final submitFuture = _submitReview(
-                                      rating: selectedRating,
-                                      comment: commentController.text,
-                                    );
-                                    setDialogState(() {});
-                                    final reviewCreated = await submitFuture;
-                                    if (dialogContext.mounted) {
-                                      if (reviewCreated) {
-                                        Navigator.of(dialogContext).pop();
-                                      } else {
-                                        setDialogState(() {});
-                                      }
-                                    }
-                                  },
-                            child: isLoading
-                                ? const SizedBox(
-                                    height: 18,
-                                    width: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: AppTheme.textWhite,
-                                    ),
-                                  )
-                                : const Text('Enviar reseña'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    ).whenComplete(commentController.dispose);
   }
 
   Future<void> _openWhatsApp() async {
@@ -476,7 +273,7 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
             }
 
             return OutlinedButton(
-              onPressed: _isReviewLoading ? null : _openReviewDialog,
+              onPressed: _openReviewForm,
               child: const Text('Escribir reseña'),
             );
           },
