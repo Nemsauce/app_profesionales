@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../constants/app_theme.dart';
 import '../models/professional.dart';
 import '../services/contact_service.dart';
 
@@ -62,17 +63,28 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
     required List<Widget> children,
   }) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      color: AppTheme.glassWhiteStrong,
+      elevation: 8,
+      margin: const EdgeInsets.only(bottom: 14),
+      shadowColor: AppTheme.terracottaRed.withAlpha(36),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+        side: const BorderSide(color: AppTheme.glassBorder),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
               title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: AppTheme.textWhite,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             ...children,
           ],
         ),
@@ -88,11 +100,101 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppTheme.textWhite,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 2),
-          Text(displayValue),
+          Text(
+            displayValue,
+            style: const TextStyle(color: AppTheme.textWhiteMuted),
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildHeader(Professional professional) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: IconButton(
+            tooltip: 'Volver',
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.arrow_back),
+            color: AppTheme.warmOrange,
+            style: IconButton.styleFrom(
+              backgroundColor: AppTheme.glassWhiteStrong,
+              side: const BorderSide(color: AppTheme.glassBorder),
+            ),
+          ),
+        ),
+        const SizedBox(height: 18),
+        Center(
+          child: Container(
+            height: 92,
+            width: 92,
+            decoration: BoxDecoration(
+              color: AppTheme.terracottaRed.withAlpha(72),
+              shape: BoxShape.circle,
+              border: Border.all(color: AppTheme.glassBorder),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.terracottaRed.withAlpha(64),
+                  blurRadius: 28,
+                  offset: const Offset(0, 14),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.home_repair_service,
+              color: AppTheme.warmOrange,
+              size: 42,
+            ),
+          ),
+        ),
+        const SizedBox(height: 18),
+        Text(
+          professional.name,
+          style: const TextStyle(
+            color: AppTheme.textWhite,
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          professional.category,
+          style: const TextStyle(
+            color: AppTheme.warmOrange,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 6),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.location_on,
+              color: AppTheme.textWhiteMuted,
+              size: 18,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              professional.city,
+              style: const TextStyle(color: AppTheme.textWhiteMuted),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -104,51 +206,69 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
         : professional.description.trim();
 
     return Scaffold(
-      appBar: AppBar(title: Text(professional.name)),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _buildSection(
-            title: 'Información básica',
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.topRight,
+            radius: 1.25,
+            colors: [
+              AppTheme.warmOrange.withAlpha(48),
+              AppTheme.terracottaRed.withAlpha(30),
+              AppTheme.darkBackgroundAlt,
+              AppTheme.darkBackground,
+            ],
+            stops: const [0, 0.28, 0.62, 1],
+          ),
+        ),
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(AppTheme.screenPadding),
             children: [
-              Text(
-                professional.name,
-                style: Theme.of(context).textTheme.headlineSmall,
+              _buildHeader(professional),
+              const SizedBox(height: 28),
+              _buildSection(
+                title: 'Descripción',
+                children: [_buildInfoRow('Descripción', description)],
               ),
-              const SizedBox(height: 8),
-              _buildInfoRow('Categoría', professional.category),
-              _buildInfoRow('Ciudad', professional.city),
+              _buildSection(
+                title: 'Reputación',
+                children: [
+                  _buildInfoRow(
+                    'Rating',
+                    professional.rating.toStringAsFixed(1),
+                  ),
+                  _buildInfoRow('Reviews', professional.reviewCount.toString()),
+                ],
+              ),
+              _buildSection(
+                title: 'Contacto',
+                children: [
+                  _buildInfoRow('Teléfono', professional.phoneNumber),
+                  _buildInfoRow('WhatsApp', professional.whatsappNumber),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.successGreen,
+                  foregroundColor: AppTheme.textWhite,
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
+                  ),
+                ),
+                onPressed: _isContactLoading ? null : _openWhatsApp,
+                child: const Text('Contactar por WhatsApp'),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton(
+                onPressed: _isContactLoading ? null : _callPhone,
+                child: const Text('Llamar'),
+              ),
+              const SizedBox(height: 16),
             ],
           ),
-          _buildSection(
-            title: 'Descripción',
-            children: [_buildInfoRow('Descripción', description)],
-          ),
-          _buildSection(
-            title: 'Reputación',
-            children: [
-              _buildInfoRow('Rating', professional.rating.toStringAsFixed(1)),
-              _buildInfoRow('Reviews', professional.reviewCount.toString()),
-            ],
-          ),
-          _buildSection(
-            title: 'Contacto',
-            children: [
-              _buildInfoRow('Teléfono', professional.phoneNumber),
-              _buildInfoRow('WhatsApp', professional.whatsappNumber),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _isContactLoading ? null : _openWhatsApp,
-            child: const Text('Contactar por WhatsApp'),
-          ),
-          const SizedBox(height: 8),
-          ElevatedButton(
-            onPressed: _isContactLoading ? null : _callPhone,
-            child: const Text('Llamar'),
-          ),
-        ],
+        ),
       ),
     );
   }
