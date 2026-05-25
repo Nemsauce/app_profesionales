@@ -5,6 +5,7 @@ import '../constants/app_theme.dart';
 import '../models/professional.dart';
 import '../services/auth_service.dart';
 import '../services/professional_service.dart';
+import 'category_professionals_screen.dart';
 import 'professional_detail_screen.dart';
 
 class ClientHomeScreen extends StatefulWidget {
@@ -17,7 +18,6 @@ class ClientHomeScreen extends StatefulWidget {
 class _ClientHomeScreenState extends State<ClientHomeScreen> {
   final ProfessionalService _professionalService = ProfessionalService();
   final TextEditingController _searchController = TextEditingController();
-  String? _selectedCategory;
   String? _selectedCity;
   String _searchText = '';
 
@@ -41,7 +41,6 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
   void _clearFilters() {
     _searchController.clear();
     setState(() {
-      _selectedCategory = null;
       _selectedCity = null;
       _searchText = '';
     });
@@ -52,6 +51,18 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => ProfessionalDetailScreen(professional: professional),
+      ),
+    );
+  }
+
+  void _openCategory(String category) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CategoryProfessionalsScreen(
+          category: category,
+          initialCity: _selectedCity,
+        ),
       ),
     );
   }
@@ -201,6 +212,15 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
     }
   }
 
+  List<String> _filteredCategories() {
+    final query = _searchText.trim().toLowerCase();
+    if (query.isEmpty) return AppConstants.serviceCategories;
+
+    return AppConstants.serviceCategories
+        .where((category) => category.toLowerCase().contains(query))
+        .toList();
+  }
+
   Widget _buildHeader() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -303,6 +323,8 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
   }
 
   Widget _buildCategoryGrid() {
+    final categories = _filteredCategories();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -318,7 +340,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: AppConstants.serviceCategories.length,
+          itemCount: categories.length,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             crossAxisSpacing: 12,
@@ -326,46 +348,24 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
             childAspectRatio: 2.55,
           ),
           itemBuilder: (context, index) {
-            final category = AppConstants.serviceCategories[index];
-            final isSelected = _selectedCategory == category;
+            final category = categories[index];
 
             return InkWell(
               borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
-              onTap: () {
-                setState(() {
-                  _selectedCategory = isSelected ? null : category;
-                });
-              },
+              onTap: () => _openCategory(category),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? AppTheme.terracottaRed.withAlpha(82)
-                      : AppTheme.glassWhiteStrong,
+                  color: AppTheme.glassWhiteStrong,
                   borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
-                  border: Border.all(
-                    color: isSelected
-                        ? AppTheme.warmOrange
-                        : AppTheme.glassBorder,
-                  ),
-                  boxShadow: isSelected
-                      ? [
-                          BoxShadow(
-                            color: AppTheme.terracottaRed.withAlpha(44),
-                            blurRadius: 18,
-                            offset: const Offset(0, 8),
-                          ),
-                        ]
-                      : null,
+                  border: Border.all(color: AppTheme.glassBorder),
                 ),
                 child: Row(
                   children: [
                     Icon(
                       _iconForCategory(category),
-                      color: isSelected
-                          ? AppTheme.textWhite
-                          : AppTheme.warmOrange,
+                      color: AppTheme.warmOrange,
                       size: 24,
                     ),
                     const SizedBox(width: 10),
@@ -391,10 +391,9 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
     );
   }
 
-  Widget _buildProfessionalsSection(bool hasFilters) {
+  Widget _buildFeaturedProfessionalsSection() {
     return StreamBuilder<List<Professional>>(
       stream: _professionalService.getActiveProfessionalsFiltered(
-        category: _selectedCategory,
         city: _selectedCity,
       ),
       builder: (context, snapshot) {
@@ -420,17 +419,28 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
           );
         }
 
-        final professionals = _filterProfessionalsBySearch(snapshot.data ?? []);
+        final professionals =
+            _filterProfessionalsBySearch(snapshot.data ?? [])
+                .where(
+                  (professional) =>
+                      professional.rating > 0 && professional.reviewCount > 0,
+                )
+                .toList()
+              ..sort((a, b) {
+                final ratingComparison = b.rating.compareTo(a.rating);
+                if (ratingComparison != 0) return ratingComparison;
+                return b.reviewCount.compareTo(a.reviewCount);
+              });
 
-        if (professionals.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 32),
+        final featuredProfessionals = professionals.take(3).toList();
+
+        if (featuredProfessionals.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
             child: Center(
               child: Text(
-                hasFilters
-                    ? 'No hay profesionales disponibles con estos filtros.'
-                    : 'No hay profesionales disponibles por ahora.',
-                style: const TextStyle(color: AppTheme.textWhiteMuted),
+                'Aún no hay profesionales destacados.',
+                style: TextStyle(color: AppTheme.textWhiteMuted),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -441,10 +451,10 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           padding: const EdgeInsets.only(bottom: 8),
-          itemCount: professionals.length,
+          itemCount: featuredProfessionals.length,
           separatorBuilder: (context, index) => const SizedBox(height: 14),
           itemBuilder: (context, index) {
-            final professional = professionals[index];
+            final professional = featuredProfessionals[index];
             return _buildProfessionalCard(professional);
           },
         );
@@ -455,9 +465,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final hasFilters =
-        (_selectedCategory?.isNotEmpty ?? false) ||
-        (_selectedCity?.isNotEmpty ?? false) ||
-        _searchText.trim().isNotEmpty;
+        (_selectedCity?.isNotEmpty ?? false) || _searchText.trim().isNotEmpty;
 
     return Scaffold(
       body: Container(
@@ -487,7 +495,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                 _buildCategoryGrid(),
                 const SizedBox(height: 28),
                 const Text(
-                  'Profesionales disponibles',
+                  'Profesionales destacados',
                   style: TextStyle(
                     color: AppTheme.textWhite,
                     fontSize: 20,
@@ -495,7 +503,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 14),
-                _buildProfessionalsSection(hasFilters),
+                _buildFeaturedProfessionalsSection(),
                 const SizedBox(height: 16),
               ],
             ),
