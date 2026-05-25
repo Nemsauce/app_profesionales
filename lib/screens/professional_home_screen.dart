@@ -34,8 +34,51 @@ class ProfessionalHomeScreen extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Text(message, textAlign: TextAlign.center),
+        child: Text(
+          message,
+          style: const TextStyle(color: AppTheme.textWhiteMuted),
+          textAlign: TextAlign.center,
+        ),
       ),
+    );
+  }
+
+  Widget _buildDashboardHeader(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Mi perfil profesional',
+                style: TextStyle(
+                  color: AppTheme.textWhite,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 6),
+              Text(
+                'Administra cómo te ven los clientes',
+                style: TextStyle(color: AppTheme.textWhiteMuted, fontSize: 15),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        OutlinedButton.icon(
+          onPressed: () => _logout(context),
+          icon: const Icon(Icons.logout, size: 18),
+          label: const Text('Cerrar sesión'),
+          style: OutlinedButton.styleFrom(
+            backgroundColor: AppTheme.glassWhiteStrong,
+            foregroundColor: AppTheme.warmOrange,
+            side: const BorderSide(color: AppTheme.glassBorder),
+          ),
+        ),
+      ],
     );
   }
 
@@ -44,26 +87,28 @@ class ProfessionalHomeScreen extends StatelessWidget {
     required List<Widget> children,
   }) {
     return Card(
-      color: AppTheme.cardBackground,
+      color: AppTheme.glassWhiteStrong,
+      elevation: 8,
       margin: const EdgeInsets.only(bottom: 14),
+      shadowColor: AppTheme.terracottaRed.withAlpha(36),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: AppTheme.primaryBlue.withValues(alpha: 0.10)),
+        borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+        side: const BorderSide(color: AppTheme.glassBorder),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
               title,
               style: const TextStyle(
-                fontSize: 16,
+                color: AppTheme.textWhite,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppTheme.primaryBlue,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             ...children,
           ],
         ),
@@ -79,9 +124,18 @@ class ProfessionalHomeScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppTheme.textWhite,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 2),
-          Text(displayValue),
+          Text(
+            displayValue,
+            style: const TextStyle(color: AppTheme.textWhiteMuted),
+          ),
         ],
       ),
     );
@@ -91,8 +145,97 @@ class ProfessionalHomeScreen extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       color: AppTheme.warningOrange,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      child: Padding(padding: const EdgeInsets.all(14), child: Text(message)),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
+        side: const BorderSide(color: AppTheme.glassBorder),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Text(
+          message,
+          style: const TextStyle(
+            color: AppTheme.warningText,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVisualProfileHeader(Professional professional) {
+    return Card(
+      color: AppTheme.glassWhiteStrong,
+      elevation: 10,
+      margin: const EdgeInsets.only(bottom: 18),
+      shadowColor: AppTheme.terracottaRed.withAlpha(48),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+        side: const BorderSide(color: AppTheme.glassBorder),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            Container(
+              height: 84,
+              width: 84,
+              decoration: BoxDecoration(
+                color: AppTheme.terracottaRed.withAlpha(72),
+                shape: BoxShape.circle,
+                border: Border.all(color: AppTheme.glassBorder),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.terracottaRed.withAlpha(56),
+                    blurRadius: 26,
+                    offset: const Offset(0, 12),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.home_repair_service,
+                color: AppTheme.warmOrange,
+                size: 38,
+              ),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              professional.name,
+              style: const TextStyle(
+                color: AppTheme.textWhite,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              professional.category,
+              style: const TextStyle(
+                color: AppTheme.warmOrange,
+                fontWeight: FontWeight.w700,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.location_on,
+                  color: AppTheme.textWhiteMuted,
+                  size: 18,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  professional.city,
+                  style: const TextStyle(color: AppTheme.textWhiteMuted),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -106,6 +249,7 @@ class ProfessionalHomeScreen extends StatelessWidget {
 
     return ListView(
       children: [
+        _buildVisualProfileHeader(professional),
         if (!hasDescription)
           _buildNotice(
             'Agrega una descripción para que los clientes entiendan mejor tus servicios.',
@@ -149,6 +293,14 @@ class ProfessionalHomeScreen extends StatelessWidget {
         ),
         const SizedBox(height: 18),
         ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.terracottaRed,
+            foregroundColor: AppTheme.textWhite,
+            padding: const EdgeInsets.symmetric(vertical: 18),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
+            ),
+          ),
           onPressed: () {
             Navigator.push(
               context,
@@ -160,6 +312,7 @@ class ProfessionalHomeScreen extends StatelessWidget {
           },
           child: const Text('Editar perfil'),
         ),
+        const SizedBox(height: 16),
       ],
     );
   }
@@ -175,7 +328,9 @@ class ProfessionalHomeScreen extends StatelessWidget {
       stream: _professionalService.getProfessionalById(user.uid),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: CircularProgressIndicator(color: AppTheme.warmOrange),
+          );
         }
 
         if (snapshot.hasError) {
@@ -199,19 +354,32 @@ class ProfessionalHomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Profesional')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ElevatedButton(
-              onPressed: () => _logout(context),
-              child: const Text('Cerrar sesión'),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.topRight,
+            radius: 1.25,
+            colors: [
+              AppTheme.warmOrange.withAlpha(48),
+              AppTheme.terracottaRed.withAlpha(30),
+              AppTheme.darkBackgroundAlt,
+              AppTheme.darkBackground,
+            ],
+            stops: const [0, 0.28, 0.62, 1],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(AppTheme.screenPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildDashboardHeader(context),
+                const SizedBox(height: 20),
+                Expanded(child: _buildProfessionalProfile()),
+              ],
             ),
-            const SizedBox(height: 16),
-            Expanded(child: _buildProfessionalProfile()),
-          ],
+          ),
         ),
       ),
     );
