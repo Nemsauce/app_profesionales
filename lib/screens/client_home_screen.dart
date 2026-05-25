@@ -5,6 +5,7 @@ import '../constants/app_theme.dart';
 import '../models/professional.dart';
 import '../services/auth_service.dart';
 import '../services/professional_service.dart';
+import '../utils/professional_profile_utils.dart';
 import 'category_professionals_screen.dart';
 import 'professional_detail_screen.dart';
 
@@ -444,7 +445,9 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
         }
 
         final professionals =
-            _filterProfessionalsBySearch(snapshot.data ?? []).toList()..sort(
+            _filterProfessionalsBySearch(
+              snapshot.data ?? [],
+            ).where(ProfessionalProfileUtils.isProfileComplete).toList()..sort(
               (a, b) => b.registrationDate.compareTo(a.registrationDate),
             );
 
@@ -455,7 +458,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
             padding: EdgeInsets.symmetric(vertical: 24),
             child: Center(
               child: Text(
-                'Aún no hay profesionales recientes.',
+                'Aún no hay profesionales disponibles con perfil completo.',
                 style: TextStyle(color: AppTheme.textWhiteMuted),
                 textAlign: TextAlign.center,
               ),

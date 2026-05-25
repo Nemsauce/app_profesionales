@@ -4,6 +4,7 @@ import '../constants/app_constants.dart';
 import '../constants/app_theme.dart';
 import '../models/professional.dart';
 import '../services/professional_service.dart';
+import '../utils/professional_profile_utils.dart';
 import 'professional_detail_screen.dart';
 
 class CategoryProfessionalsScreen extends StatefulWidget {
@@ -289,12 +290,6 @@ class _CategoryProfessionalsScreenState
               ),
               const SizedBox(height: 8),
               _professionalInfoRow(
-                icon: Icons.star,
-                text:
-                    '${professional.rating.toStringAsFixed(1)} (${professional.reviewCount} reviews)',
-              ),
-              const SizedBox(height: 8),
-              _professionalInfoRow(
                 icon: Icons.chat,
                 text: 'WhatsApp: ${professional.whatsappNumber}',
               ),
@@ -348,7 +343,9 @@ class _CategoryProfessionalsScreenState
           );
         }
 
-        final professionals = _filterProfessionalsBySearch(snapshot.data ?? []);
+        final professionals = _filterProfessionalsBySearch(
+          snapshot.data ?? [],
+        ).where(ProfessionalProfileUtils.isProfileComplete).toList();
 
         if (professionals.isEmpty) {
           return Center(

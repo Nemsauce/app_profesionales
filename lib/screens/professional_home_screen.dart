@@ -4,6 +4,7 @@ import '../constants/app_theme.dart';
 import '../models/professional.dart';
 import '../services/auth_service.dart';
 import '../services/professional_service.dart';
+import '../utils/professional_profile_utils.dart';
 import 'professional_edit_profile_screen.dart';
 
 class ProfessionalHomeScreen extends StatelessWidget {
@@ -163,6 +164,89 @@ class ProfessionalHomeScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildProfileCompletionCard(Professional professional) {
+    final isComplete = ProfessionalProfileUtils.isProfileComplete(professional);
+    final completionPercent = ProfessionalProfileUtils.completionPercent(
+      professional,
+    );
+    final missingItems = ProfessionalProfileUtils.missingProfileItems(
+      professional,
+    );
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 18),
+      color: isComplete
+          ? AppTheme.successGreen.withAlpha(38)
+          : AppTheme.warningOrange,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+        side: BorderSide(
+          color: isComplete ? AppTheme.successGreen : AppTheme.glassBorder,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              isComplete
+                  ? 'Tu perfil está visible para clientes.'
+                  : 'Tu perfil aún no está visible para clientes.',
+              style: TextStyle(
+                color: isComplete
+                    ? AppTheme.successGreen
+                    : AppTheme.warningText,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Completitud: $completionPercent%',
+              style: const TextStyle(
+                color: AppTheme.textWhite,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            if (!isComplete) ...[
+              const SizedBox(height: 8),
+              const Text(
+                'Completa la información faltante para aparecer en el marketplace.',
+                style: TextStyle(color: AppTheme.textWhiteMuted),
+              ),
+              const SizedBox(height: 10),
+              ...missingItems.map(
+                (item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.circle,
+                        color: AppTheme.warningText,
+                        size: 8,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          item,
+                          style: const TextStyle(
+                            color: AppTheme.textWhiteMuted,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildVisualProfileHeader(Professional professional) {
     return Card(
       color: AppTheme.glassWhiteStrong,
@@ -250,6 +334,7 @@ class ProfessionalHomeScreen extends StatelessWidget {
     return ListView(
       children: [
         _buildVisualProfileHeader(professional),
+        _buildProfileCompletionCard(professional),
         if (!hasDescription)
           _buildNotice(
             'Agrega una descripción para que los clientes entiendan mejor tus servicios.',
