@@ -414,45 +414,94 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
     );
   }
 
-  Widget _buildReviewsList() {
+  double _calculateAverageRating(List<Review> reviews) {
+    if (reviews.isEmpty) return 0;
+
+    final total = reviews.fold<double>(
+      0,
+      (totalRating, review) => totalRating + review.rating,
+    );
+
+    return total / reviews.length;
+  }
+
+  Widget _buildReviewsSummary(Professional professional) {
     return StreamBuilder<List<Review>>(
-      stream: _reviewService.getReviewsByProfessional(widget.professional.id),
+      stream: _reviewService.getReviewsByProfessional(professional.id),
       builder: (context, snapshot) {
+        final fallbackRating = professional.rating;
+        final fallbackReviewCount = professional.reviewCount;
+
+        Widget buildContent({
+          required double rating,
+          required int reviewCount,
+          List<Review> reviews = const [],
+          String? message,
+          bool showLoading = false,
+        }) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildInfoRow('Rating', rating.toStringAsFixed(1)),
+              _buildInfoRow('Reviews', reviewCount.toString()),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: _isReviewLoading ? null : _openReviewDialog,
+                child: const Text('Escribir reseña'),
+              ),
+              if (showLoading)
+                const Padding(
+                  padding: EdgeInsets.only(top: 16),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: AppTheme.warmOrange,
+                    ),
+                  ),
+                ),
+              if (message != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Text(
+                    message,
+                    style: const TextStyle(color: AppTheme.textWhiteMuted),
+                  ),
+                ),
+              ...reviews.take(5).map(_buildReviewCard),
+            ],
+          );
+        }
+
         if (snapshot.connectionState == ConnectionState.waiting &&
             !snapshot.hasData) {
-          return const Padding(
-            padding: EdgeInsets.only(top: 16),
-            child: Center(
-              child: CircularProgressIndicator(color: AppTheme.warmOrange),
-            ),
+          return buildContent(
+            rating: fallbackRating,
+            reviewCount: fallbackReviewCount,
+            showLoading: true,
           );
         }
 
         if (snapshot.hasError) {
-          return const Padding(
-            padding: EdgeInsets.only(top: 16),
-            child: Text(
-              'No se pudieron cargar las reseñas.',
-              style: TextStyle(color: AppTheme.textWhiteMuted),
-            ),
+          return buildContent(
+            rating: fallbackRating,
+            reviewCount: fallbackReviewCount,
+            message: 'No se pudieron cargar las reseñas.',
           );
         }
 
-        final reviews = (snapshot.data ?? []).take(5).toList();
+        final reviews = snapshot.data ?? [];
 
         if (reviews.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.only(top: 16),
-            child: Text(
-              'Aún no hay reseñas para este profesional.',
-              style: TextStyle(color: AppTheme.textWhiteMuted),
-            ),
+          return buildContent(
+            rating: fallbackRating,
+            reviewCount: fallbackReviewCount,
+            message: 'Aún no hay reseñas para este profesional.',
           );
         }
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: reviews.map(_buildReviewCard).toList(),
+        return buildContent(
+          rating: _calculateAverageRating(reviews),
+          reviewCount: reviews.length,
+          reviews: reviews,
         );
       },
     );
@@ -573,19 +622,7 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
               ),
               _buildSection(
                 title: 'Reputación',
-                children: [
-                  _buildInfoRow(
-                    'Rating',
-                    professional.rating.toStringAsFixed(1),
-                  ),
-                  _buildInfoRow('Reviews', professional.reviewCount.toString()),
-                  const SizedBox(height: 12),
-                  OutlinedButton(
-                    onPressed: _isReviewLoading ? null : _openReviewDialog,
-                    child: const Text('Escribir reseña'),
-                  ),
-                  _buildReviewsList(),
-                ],
+                children: [_buildReviewsSummary(professional)],
               ),
               _buildSection(
                 title: 'Contacto',
