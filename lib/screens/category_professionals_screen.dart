@@ -73,6 +73,33 @@ class _CategoryProfessionalsScreenState
     }).toList();
   }
 
+  IconData _iconForCategory(String category) {
+    switch (category) {
+      case 'Carpintería':
+        return Icons.handyman;
+      case 'Plomería':
+        return Icons.plumbing;
+      case 'Pintura':
+        return Icons.format_paint;
+      case 'Cerrajería':
+        return Icons.lock;
+      case 'Electricidad':
+        return Icons.electrical_services;
+      case 'Aires acondicionados':
+        return Icons.ac_unit;
+      case 'Jardinería':
+        return Icons.yard;
+      case 'Mudanzas':
+        return Icons.local_shipping;
+      case 'Limpieza':
+        return Icons.cleaning_services;
+      case 'Reformas':
+        return Icons.construction;
+      default:
+        return Icons.home_repair_service;
+    }
+  }
+
   Widget _buildHeader() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -88,6 +115,27 @@ class _CategoryProfessionalsScreenState
           ),
         ),
         const SizedBox(width: 12),
+        Container(
+          height: 56,
+          width: 56,
+          decoration: BoxDecoration(
+            color: AppTheme.glassWhiteStrong,
+            shape: BoxShape.circle,
+            border: Border.all(color: AppTheme.glassBorder),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.terracottaRed.withAlpha(40),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Icon(
+            _iconForCategory(widget.category),
+            color: AppTheme.warmOrange,
+          ),
+        ),
+        const SizedBox(width: 14),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,7 +144,7 @@ class _CategoryProfessionalsScreenState
                 widget.category,
                 style: const TextStyle(
                   color: AppTheme.textWhite,
-                  fontSize: 26,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -126,6 +174,15 @@ class _CategoryProfessionalsScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const Text(
+              'Buscar y filtrar',
+              style: TextStyle(
+                color: AppTheme.textWhite,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 14),
             TextField(
               controller: _searchController,
               decoration: const InputDecoration(
@@ -191,13 +248,11 @@ class _CategoryProfessionalsScreenState
                     width: 46,
                     decoration: BoxDecoration(
                       color: AppTheme.terracottaRed.withAlpha(70),
-                      borderRadius: BorderRadius.circular(
-                        AppTheme.defaultRadius,
-                      ),
+                      shape: BoxShape.circle,
                       border: Border.all(color: AppTheme.glassBorder),
                     ),
-                    child: const Icon(
-                      Icons.home_repair_service,
+                    child: Icon(
+                      _iconForCategory(professional.category),
                       color: AppTheme.warmOrange,
                     ),
                   ),
@@ -300,7 +355,7 @@ class _CategoryProfessionalsScreenState
             child: Text(
               hasFilters
                   ? 'No hay profesionales disponibles con estos filtros.'
-                  : 'No hay profesionales disponibles por ahora.',
+                  : 'No hay profesionales disponibles en esta categoría por ahora.',
               style: const TextStyle(color: AppTheme.textWhiteMuted),
               textAlign: TextAlign.center,
             ),
