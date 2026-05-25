@@ -121,6 +121,43 @@ service cloud.firestore {
         && request.resource.data.updatedAt is timestamp;
     }
 
+    function validReviewCreate(reviewId) {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'professionalId',
+        'clientId',
+        'clientName',
+        'rating',
+        'comment',
+        'createdAt',
+      ])
+        && request.resource.data.keys().hasAll([
+          'id',
+          'professionalId',
+          'clientId',
+          'clientName',
+          'rating',
+          'comment',
+          'createdAt',
+        ])
+        && request.resource.data.id is string
+        && request.resource.data.id == reviewId
+        && request.resource.data.clientId is string
+        && request.resource.data.clientId == request.auth.uid
+        && request.resource.data.professionalId is string
+        && request.resource.data.professionalId.size() > 0
+        && reviewId == request.auth.uid + '_' + request.resource.data.professionalId
+        && request.resource.data.clientName is string
+        && request.resource.data.clientName.size() > 0
+        && request.resource.data.rating is number
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        && request.resource.data.comment is string
+        && request.resource.data.comment.size() <= 500
+        && request.resource.data.createdAt == request.time
+        && exists(/databases/$(database)/documents/professionals/$(request.resource.data.professionalId));
+    }
+
     match /users/{uid} {
       allow get: if isOwner(uid);
       allow create: if isOwner(uid) && validUserCreate(uid);
@@ -149,8 +186,7 @@ service cloud.firestore {
 
     match /reviews/{reviewId} {
       allow get, list: if isSignedIn();
-      allow create: if isSignedIn()
-        && request.resource.data.clientId == request.auth.uid;
+      allow create: if isSignedIn() && validReviewCreate(reviewId);
       allow update, delete: if false;
     }
 
