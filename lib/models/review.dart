@@ -2,54 +2,63 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Review {
   final String id;
+  final String professionalId;
   final String clientId;
   final String clientName;
-  final String clientPhotoUrl;
-  final String professionalId;
   final double rating;
   final String comment;
-  final DateTime date;
+  final DateTime createdAt;
 
   Review({
     required this.id,
+    required this.professionalId,
     required this.clientId,
     required this.clientName,
-    required this.clientPhotoUrl,
-    required this.professionalId,
     required this.rating,
     required this.comment,
-    required this.date,
+    required this.createdAt,
   });
 
-  static DateTime _parseDate(dynamic value) {
+  static String _readString(Map<String, dynamic> json, String key) {
+    final value = json[key];
+    if (value is String) return value;
+    throw FormatException('El campo $key debe ser texto.');
+  }
+
+  static double _readRating(Map<String, dynamic> json) {
+    final value = json['rating'];
+    if (value is num) return value.toDouble();
+    throw const FormatException('El campo rating debe ser numérico.');
+  }
+
+  static DateTime _readCreatedAt(Map<String, dynamic> json) {
+    final value = json['createdAt'];
     if (value is Timestamp) return value.toDate();
-    if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
-    return DateTime.now();
+    if (value is DateTime) return value;
+    throw const FormatException('El campo createdAt debe ser timestamp.');
   }
 
   factory Review.fromJson(Map<String, dynamic> json) {
     return Review(
-      id: json['id'] as String? ?? '',
-      clientId: json['clientId'] as String? ?? '',
-      clientName: json['clientName'] as String? ?? '',
-      clientPhotoUrl: json['clientPhotoUrl'] as String? ?? '',
-      professionalId: json['professionalId'] as String? ?? '',
-      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
-      comment: json['comment'] as String? ?? '',
-      date: _parseDate(json['date']),
+      id: _readString(json, 'id'),
+      professionalId: _readString(json, 'professionalId'),
+      clientId: _readString(json, 'clientId'),
+      clientName: _readString(json, 'clientName'),
+      rating: _readRating(json),
+      comment: _readString(json, 'comment'),
+      createdAt: _readCreatedAt(json),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'professionalId': professionalId,
       'clientId': clientId,
       'clientName': clientName,
-      'clientPhotoUrl': clientPhotoUrl,
-      'professionalId': professionalId,
       'rating': rating,
       'comment': comment,
-      'date': Timestamp.fromDate(date),
+      'createdAt': Timestamp.fromDate(createdAt),
     };
   }
 }
