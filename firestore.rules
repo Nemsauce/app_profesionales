@@ -18,6 +18,14 @@ service cloud.firestore {
       return getAfter(/databases/$(database)/documents/users/$(userId)).data.role;
     }
 
+    function userRole(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data.role;
+    }
+
+    function isClient() {
+      return isSignedIn() && userRole(request.auth.uid) == 'client';
+    }
+
     function isActiveProfessional() {
       return resource.data.subscriptionActive == true;
     }
@@ -146,6 +154,7 @@ service cloud.firestore {
         && request.resource.data.clientId == request.auth.uid
         && request.resource.data.professionalId is string
         && request.resource.data.professionalId.size() > 0
+        && request.resource.data.professionalId != request.auth.uid
         && reviewId == request.auth.uid + '_' + request.resource.data.professionalId
         && request.resource.data.clientName is string
         && request.resource.data.clientName.size() > 0
@@ -186,7 +195,7 @@ service cloud.firestore {
 
     match /reviews/{reviewId} {
       allow get, list: if isSignedIn();
-      allow create: if isSignedIn() && validReviewCreate(reviewId);
+      allow create: if isClient() && validReviewCreate(reviewId);
       allow update, delete: if false;
     }
 
