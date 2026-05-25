@@ -337,56 +337,86 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
           ),
         ),
         const SizedBox(height: 14),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: categories.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 2.55,
-          ),
-          itemBuilder: (context, index) {
-            final category = categories[index];
+        if (categories.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 18),
+            child: Text(
+              'No encontramos servicios con esa búsqueda.',
+              style: TextStyle(color: AppTheme.textWhiteMuted),
+              textAlign: TextAlign.center,
+            ),
+          )
+        else
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: categories.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 1.18,
+            ),
+            itemBuilder: (context, index) {
+              final category = categories[index];
 
-            return InkWell(
-              borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
-              onTap: () => _openCategory(category),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppTheme.glassWhiteStrong,
-                  borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
-                  border: Border.all(color: AppTheme.glassBorder),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      _iconForCategory(category),
-                      color: AppTheme.warmOrange,
-                      size: 24,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
+              return InkWell(
+                borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+                splashColor: AppTheme.warmOrange.withAlpha(36),
+                highlightColor: AppTheme.terracottaRed.withAlpha(28),
+                onTap: () => _openCategory(category),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.glassWhiteStrong,
+                    borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+                    border: Border.all(color: AppTheme.glassBorder),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.terracottaRed.withAlpha(18),
+                        blurRadius: 18,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: Container(
+                          height: 46,
+                          width: 46,
+                          decoration: BoxDecoration(
+                            color: AppTheme.glassWhiteSoft,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppTheme.glassBorder),
+                          ),
+                          child: Icon(
+                            _iconForCategory(category),
+                            color: AppTheme.warmOrange,
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
                         category,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: AppTheme.textWhite,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
-        ),
+              );
+            },
+          ),
       ],
     );
   }
