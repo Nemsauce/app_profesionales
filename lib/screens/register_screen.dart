@@ -125,30 +125,58 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final bool isSelected = _selectedType == type;
     return GestureDetector(
       onTap: _isLoading ? null : () => setState(() => _selectedType = type),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryBlue : AppTheme.cardBackground,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppTheme.primaryBlue),
+          color: isSelected
+              ? AppTheme.terracottaRed.withAlpha(70)
+              : AppTheme.cardBackground,
+          borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
+          border: Border.all(
+            color: isSelected ? AppTheme.warmOrange : AppTheme.glassBorder,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppTheme.terracottaRed.withAlpha(48),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
+                  ),
+                ]
+              : null,
         ),
-        child: Row(
+        child: Column(
           children: [
             Icon(
               icon,
-              size: 48,
-              color: isSelected ? Colors.white : AppTheme.primaryBlue,
+              size: 30,
+              color: isSelected ? AppTheme.textWhite : AppTheme.warmOrange,
             ),
-            const SizedBox(width: 16),
+            const SizedBox(height: 10),
             Text(
               label,
               style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.white : AppTheme.primaryBlue,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: isSelected ? AppTheme.textWhite : AppTheme.textWhite,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _fieldLabel(String label) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: AppTheme.textWhite,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -159,43 +187,55 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Padding(
       padding: const EdgeInsets.only(top: 24),
       child: Card(
+        color: AppTheme.glassWhiteStrong,
+        elevation: 10,
+        shadowColor: AppTheme.terracottaRed.withAlpha(56),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+          side: const BorderSide(color: AppTheme.glassBorder),
+        ),
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(28),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
                 'Datos de la cuenta',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: AppTheme.textWhite,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
+              _fieldLabel('Nombre completo'),
               TextField(
                 controller: _fullNameController,
                 enabled: !_isLoading,
                 decoration: const InputDecoration(
-                  labelText: 'Nombre completo',
-                  border: OutlineInputBorder(),
+                  hintText: 'Tu nombre',
                   prefixIcon: Icon(Icons.person),
                 ),
               ),
               const SizedBox(height: 16),
+              _fieldLabel('Correo electrónico'),
               TextField(
                 controller: _emailController,
                 enabled: !_isLoading,
                 decoration: const InputDecoration(
-                  labelText: 'Correo electrónico',
-                  border: OutlineInputBorder(),
+                  hintText: 'correo@ejemplo.com',
                   prefixIcon: Icon(Icons.email),
                 ),
                 keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 16),
+              _fieldLabel('Contraseña'),
               TextField(
                 controller: _passwordController,
                 enabled: !_isLoading,
                 decoration: InputDecoration(
-                  labelText: 'Contraseña',
-                  border: const OutlineInputBorder(),
+                  hintText: 'Crea una contraseña',
                   prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
                     onPressed: _isLoading
@@ -215,12 +255,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 obscureText: _obscurePassword,
               ),
               const SizedBox(height: 16),
+              _fieldLabel('Confirmar contraseña'),
               TextField(
                 controller: _confirmPasswordController,
                 enabled: !_isLoading,
                 decoration: InputDecoration(
-                  labelText: 'Confirmar contraseña',
-                  border: const OutlineInputBorder(),
+                  hintText: 'Repite tu contraseña',
                   prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
                     onPressed: _isLoading
@@ -242,12 +282,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               if (_selectedType == 2) ...[
                 const SizedBox(height: 16),
-                // Category dropdown
+                _fieldLabel('Categoría de servicio'),
                 DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(
-                    labelText: 'Categoría de servicio',
-                    border: OutlineInputBorder(),
-                  ),
+                  decoration: const InputDecoration(hintText: 'Selecciona'),
+                  dropdownColor: AppTheme.darkBackgroundAlt,
+                  style: const TextStyle(color: AppTheme.textWhite),
                   items: AppConstants.serviceCategories
                       .map(
                         (cat) => DropdownMenuItem(value: cat, child: Text(cat)),
@@ -260,12 +299,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ],
               const SizedBox(height: 16),
-              // City dropdown
+              _fieldLabel('Ciudad'),
               DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
-                  labelText: 'Ciudad',
-                  border: OutlineInputBorder(),
-                ),
+                decoration: const InputDecoration(hintText: 'Selecciona'),
+                dropdownColor: AppTheme.darkBackgroundAlt,
+                style: const TextStyle(color: AppTheme.textWhite),
                 items: AppConstants.mainCities
                     .map(
                       (city) =>
@@ -279,23 +317,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               if (_selectedType == 2) ...[
                 const SizedBox(height: 16),
+                _fieldLabel('Teléfono'),
                 TextField(
                   controller: _phoneController,
                   enabled: !_isLoading,
                   decoration: const InputDecoration(
-                    labelText: 'Teléfono',
-                    border: OutlineInputBorder(),
+                    hintText: 'Número de teléfono',
                     prefixIcon: Icon(Icons.phone),
                   ),
                   keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 16),
+                _fieldLabel('WhatsApp'),
                 TextField(
                   controller: _whatsappController,
                   enabled: !_isLoading,
                   decoration: const InputDecoration(
-                    labelText: 'WhatsApp',
-                    border: OutlineInputBorder(),
+                    hintText: 'Número de WhatsApp',
                     prefixIcon: Icon(Icons.chat),
                   ),
                   keyboardType: TextInputType.phone,
@@ -304,8 +342,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 24),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryBlue,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: AppTheme.terracottaRed,
+                  foregroundColor: AppTheme.textWhite,
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
+                  ),
                 ),
                 onPressed: _isLoading ? null : _register,
                 child: _isLoading
@@ -329,58 +371,153 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Crear cuenta'),
-        backgroundColor: AppTheme.primaryBlue,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.topRight,
+            radius: 1.25,
+            colors: [
+              AppTheme.warmOrange.withAlpha(54),
+              AppTheme.terracottaRed.withAlpha(34),
+              AppTheme.darkBackgroundAlt,
+              AppTheme.darkBackground,
+            ],
+            stops: const [0, 0.28, 0.62, 1],
+          ),
+        ),
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(AppTheme.screenPadding),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 16),
+                      _buildBrandHeader(),
+                      const SizedBox(height: 32),
+                      const Text(
+                        'Crear cuenta',
+                        style: TextStyle(
+                          color: AppTheme.textWhite,
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Elige tu tipo de cuenta y completa tus datos',
+                        style: TextStyle(
+                          color: AppTheme.textWhiteMuted,
+                          fontSize: 15,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildAccountTypeCard(),
+                      _buildForm(),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+    );
+  }
+
+  Widget _buildBrandHeader() {
+    return Column(
+      children: [
+        Container(
+          height: 72,
+          width: 72,
+          decoration: BoxDecoration(
+            color: AppTheme.glassWhiteStrong,
+            borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+            border: Border.all(color: AppTheme.glassBorder),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.terracottaRed.withAlpha(72),
+                blurRadius: 28,
+                offset: const Offset(0, 14),
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.home_repair_service,
+            color: AppTheme.warmOrange,
+            size: 34,
+          ),
+        ),
+        const SizedBox(height: 16),
+        const Text(
+          'ServiColombia',
+          style: TextStyle(
+            color: AppTheme.textWhite,
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'Servicios a tu alcance',
+          style: TextStyle(color: AppTheme.textWhiteMuted, fontSize: 15),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAccountTypeCard() {
+    return Card(
+      color: AppTheme.glassWhiteStrong,
+      elevation: 8,
+      shadowColor: AppTheme.terracottaRed.withAlpha(48),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+        side: const BorderSide(color: AppTheme.glassBorder),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-              'Crear cuenta',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Elige tu tipo de cuenta y completa tus datos',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Text(
-                      'Selecciona tu tipo de cuenta',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    _accountOption(
-                      label: 'Soy cliente',
-                      icon: Icons.person,
-                      type: 1,
-                    ),
-                    const SizedBox(height: 16),
-                    _accountOption(
-                      label: 'Soy profesional',
-                      icon: Icons.work,
-                      type: 2,
-                    ),
-                  ],
-                ),
+              'Selecciona tu tipo de cuenta',
+              style: TextStyle(
+                color: AppTheme.textWhite,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            _buildForm(),
+            Row(
+              children: [
+                Expanded(
+                  child: _accountOption(
+                    label: 'Soy cliente',
+                    icon: Icons.person,
+                    type: 1,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _accountOption(
+                    label: 'Soy profesional',
+                    icon: Icons.work,
+                    type: 2,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
