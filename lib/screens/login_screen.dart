@@ -87,7 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       const SizedBox(height: 16),
                       _buildBrandHeader(),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 34),
                       _buildLoginCard(),
                       const SizedBox(height: 24),
                     ],
@@ -105,24 +105,29 @@ class _LoginScreenState extends State<LoginScreen> {
     return Column(
       children: [
         Container(
-          height: 76,
-          width: 76,
+          height: 86,
+          width: 86,
           decoration: BoxDecoration(
-            color: AppTheme.glassWhiteStrong,
-            borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+            gradient: LinearGradient(
+              colors: [
+                AppTheme.terracottaRed.withAlpha(160),
+                AppTheme.warmOrange.withAlpha(112),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(30),
             border: Border.all(color: AppTheme.glassBorder),
             boxShadow: [
               BoxShadow(
-                color: AppTheme.terracottaRed.withAlpha(72),
-                blurRadius: 28,
-                offset: const Offset(0, 14),
+                color: AppTheme.warmOrange.withAlpha(58),
+                blurRadius: 32,
+                offset: const Offset(0, 16),
               ),
             ],
           ),
           child: const Icon(
             Icons.home_repair_service,
-            color: AppTheme.warmOrange,
-            size: 36,
+            color: AppTheme.textWhite,
+            size: 40,
           ),
         ),
         const SizedBox(height: 18),
@@ -146,13 +151,18 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildLoginCard() {
-    return Card(
-      color: AppTheme.glassWhiteStrong,
-      elevation: 10,
-      shadowColor: AppTheme.terracottaRed.withAlpha(64),
-      shape: RoundedRectangleBorder(
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.glassWhiteStrong,
         borderRadius: BorderRadius.circular(AppTheme.largeRadius),
-        side: const BorderSide(color: AppTheme.glassBorder),
+        border: Border.all(color: AppTheme.glassBorder),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.terracottaRed.withAlpha(42),
+            blurRadius: 32,
+            offset: const Offset(0, 18),
+          ),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(28),
@@ -170,8 +180,12 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Inicia sesión para continuar',
-              style: TextStyle(color: AppTheme.textWhiteMuted, fontSize: 15),
+              'Ingresa para encontrar o prestar servicios en tu ciudad.',
+              style: TextStyle(
+                color: AppTheme.textWhiteMuted,
+                fontSize: 15,
+                height: 1.35,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 28),
@@ -243,26 +257,45 @@ class _LoginScreenState extends State<LoginScreen> {
                   : const Text('Iniciar sesión'),
             ),
             const SizedBox(height: 12),
-            OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppTheme.warmOrange,
-                side: const BorderSide(color: AppTheme.warmOrange),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
-                ),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppTheme.glassWhiteSoft,
+                borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
+                border: Border.all(color: AppTheme.glassBorder),
               ),
-              onPressed: _isLoading
-                  ? null
-                  : () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const RegisterScreen(),
+              child: Column(
+                children: [
+                  const Text(
+                    '¿Aún no tienes cuenta?',
+                    style: TextStyle(color: AppTheme.textWhiteMuted),
+                  ),
+                  const SizedBox(height: 10),
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.warmOrange,
+                      side: const BorderSide(color: AppTheme.warmOrange),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.defaultRadius,
                         ),
-                      );
-                    },
-              child: const Text('Registrarse'),
+                      ),
+                    ),
+                    onPressed: _isLoading
+                        ? null
+                        : () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const RegisterScreen(),
+                              ),
+                            );
+                          },
+                    child: const Text('Crear cuenta'),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

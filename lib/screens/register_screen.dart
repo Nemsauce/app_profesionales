@@ -136,6 +136,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Widget _accountOption({
     required String label,
+    required String subtitle,
     required IconData icon,
     required int type,
   }) {
@@ -148,8 +149,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         decoration: BoxDecoration(
           color: isSelected
               ? AppTheme.terracottaRed.withAlpha(70)
-              : AppTheme.cardBackground,
-          borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
+              : AppTheme.glassWhiteSoft,
+          borderRadius: BorderRadius.circular(AppTheme.largeRadius),
           border: Border.all(
             color: isSelected ? AppTheme.warmOrange : AppTheme.glassBorder,
           ),
@@ -165,6 +166,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         child: Column(
           children: [
+            Align(
+              alignment: Alignment.topRight,
+              child: Icon(
+                isSelected ? Icons.check_circle : Icons.circle_outlined,
+                color: isSelected
+                    ? AppTheme.warmOrange
+                    : AppTheme.textWhiteSubtle,
+                size: 18,
+              ),
+            ),
             Icon(
               icon,
               size: 30,
@@ -177,6 +188,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: isSelected ? AppTheme.textWhite : AppTheme.textWhite,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppTheme.textWhiteMuted,
+                height: 1.25,
               ),
               textAlign: TextAlign.center,
             ),
@@ -203,13 +224,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (_selectedType == 0) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(top: 24),
-      child: Card(
-        color: AppTheme.glassWhiteStrong,
-        elevation: 10,
-        shadowColor: AppTheme.terracottaRed.withAlpha(56),
-        shape: RoundedRectangleBorder(
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.glassWhiteStrong,
           borderRadius: BorderRadius.circular(AppTheme.largeRadius),
-          side: const BorderSide(color: AppTheme.glassBorder),
+          border: Border.all(color: AppTheme.glassBorder),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.terracottaRed.withAlpha(42),
+              blurRadius: 32,
+              offset: const Offset(0, 18),
+            ),
+          ],
         ),
         child: Padding(
           padding: const EdgeInsets.all(28),
@@ -220,8 +246,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 'Datos de la cuenta',
                 style: TextStyle(
                   color: AppTheme.textWhite,
-                  fontSize: 20,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _selectedType == 1
+                    ? 'Completa tus datos para buscar profesionales.'
+                    : 'Completa tus datos para ofrecer tus servicios.',
+                style: const TextStyle(
+                  color: AppTheme.textWhiteMuted,
+                  height: 1.35,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -414,19 +451,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     children: [
                       const SizedBox(height: 16),
                       _buildBrandHeader(),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 30),
                       const Text(
                         'Crear cuenta',
                         style: TextStyle(
                           color: AppTheme.textWhite,
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 32,
+                          fontWeight: FontWeight.w900,
                         ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        'Elige tu tipo de cuenta y completa tus datos',
+                        'Elige cómo quieres usar la app.',
                         style: TextStyle(
                           color: AppTheme.textWhiteMuted,
                           fontSize: 15,
@@ -436,6 +473,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 24),
                       _buildAccountTypeCard(),
                       _buildForm(),
+                      const SizedBox(height: 16),
+                      TextButton(
+                        onPressed: _isLoading
+                            ? null
+                            : () {
+                                Navigator.pop(context);
+                              },
+                        child: const Text('Ya tengo cuenta'),
+                      ),
                       const SizedBox(height: 24),
                     ],
                   ),
@@ -452,24 +498,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Column(
       children: [
         Container(
-          height: 72,
-          width: 72,
+          height: 82,
+          width: 82,
           decoration: BoxDecoration(
-            color: AppTheme.glassWhiteStrong,
-            borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+            gradient: LinearGradient(
+              colors: [
+                AppTheme.terracottaRed.withAlpha(160),
+                AppTheme.warmOrange.withAlpha(112),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(30),
             border: Border.all(color: AppTheme.glassBorder),
             boxShadow: [
               BoxShadow(
-                color: AppTheme.terracottaRed.withAlpha(72),
-                blurRadius: 28,
-                offset: const Offset(0, 14),
+                color: AppTheme.warmOrange.withAlpha(58),
+                blurRadius: 32,
+                offset: const Offset(0, 16),
               ),
             ],
           ),
           child: const Icon(
             Icons.home_repair_service,
-            color: AppTheme.warmOrange,
-            size: 34,
+            color: AppTheme.textWhite,
+            size: 38,
           ),
         ),
         const SizedBox(height: 16),
@@ -493,13 +544,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Widget _buildAccountTypeCard() {
-    return Card(
-      color: AppTheme.glassWhiteStrong,
-      elevation: 8,
-      shadowColor: AppTheme.terracottaRed.withAlpha(48),
-      shape: RoundedRectangleBorder(
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.glassWhiteStrong,
         borderRadius: BorderRadius.circular(AppTheme.largeRadius),
-        side: const BorderSide(color: AppTheme.glassBorder),
+        border: Border.all(color: AppTheme.glassBorder),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.terracottaRed.withAlpha(34),
+            blurRadius: 26,
+            offset: const Offset(0, 14),
+          ),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -520,7 +576,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 Expanded(
                   child: _accountOption(
-                    label: 'Soy cliente',
+                    label: 'Cliente',
+                    subtitle: 'Busco profesionales',
                     icon: Icons.person,
                     type: 1,
                   ),
@@ -528,7 +585,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: _accountOption(
-                    label: 'Soy profesional',
+                    label: 'Profesional',
+                    subtitle: 'Ofrezco mis servicios',
                     icon: Icons.work,
                     type: 2,
                   ),
