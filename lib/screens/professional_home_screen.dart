@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../constants/app_theme.dart';
 import '../models/professional.dart';
+import '../models/review.dart';
 import '../services/auth_service.dart';
 import '../services/professional_service.dart';
+import '../services/review_service.dart';
 import '../utils/professional_profile_utils.dart';
 import 'professional_edit_profile_screen.dart';
 
@@ -12,6 +14,7 @@ class ProfessionalHomeScreen extends StatelessWidget {
 
   static final AuthService _authService = AuthService();
   static final ProfessionalService _professionalService = ProfessionalService();
+  static final ReviewService _reviewService = ReviewService();
 
   Future<void> _logout(BuildContext context) async {
     try {
@@ -142,29 +145,18 @@ class ProfessionalHomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildNotice(String message) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      color: AppTheme.warningOrange,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
-        side: const BorderSide(color: AppTheme.glassBorder),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Text(
-          message,
-          style: const TextStyle(
-            color: AppTheme.warningText,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
+  double _calculateAverageRating(List<Review> reviews) {
+    if (reviews.isEmpty) return 0;
+
+    final total = reviews.fold<double>(
+      0,
+      (totalRating, review) => totalRating + review.rating,
     );
+
+    return total / reviews.length;
   }
 
-  Widget _buildProfileCompletionCard(Professional professional) {
+  Widget _buildVisibilityStatusCard(Professional professional) {
     final isComplete = ProfessionalProfileUtils.isProfileComplete(professional);
     final completionPercent = ProfessionalProfileUtils.completionPercent(
       professional,
@@ -204,6 +196,13 @@ class ProfessionalHomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
+              isComplete
+                  ? 'Los clientes pueden encontrarte en el marketplace.'
+                  : 'Completa la información faltante para aparecer en el marketplace.',
+              style: const TextStyle(color: AppTheme.textWhiteMuted),
+            ),
+            const SizedBox(height: 12),
+            Text(
               'Completitud: $completionPercent%',
               style: const TextStyle(
                 color: AppTheme.textWhite,
@@ -211,11 +210,6 @@ class ProfessionalHomeScreen extends StatelessWidget {
               ),
             ),
             if (!isComplete) ...[
-              const SizedBox(height: 8),
-              const Text(
-                'Completa la información faltante para aparecer en el marketplace.',
-                style: TextStyle(color: AppTheme.textWhiteMuted),
-              ),
               const SizedBox(height: 10),
               ...missingItems.map(
                 (item) => Padding(
@@ -244,6 +238,147 @@ class ProfessionalHomeScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildContactInfoCard(Professional professional) {
+    return _buildInfoCard(
+      title: 'Información de contacto',
+      children: [
+        _buildProfileRow('Teléfono', professional.phoneNumber),
+        _buildProfileRow('WhatsApp', professional.whatsappNumber),
+        _buildProfileRow('Ciudad', professional.city),
+        _buildProfileRow('Categoría', professional.category),
+      ],
+    );
+  }
+
+  Widget _buildReviewStars(double rating) {
+    return Row(
+      children: List.generate(5, (index) {
+        final starValue = index + 1;
+        return Icon(
+          Icons.star_rounded,
+          size: 18,
+          color: starValue <= rating.round()
+              ? AppTheme.verifiedGold
+              : AppTheme.textWhiteSubtle,
+        );
+      }),
+    );
+  }
+
+  Widget _buildReviewPreview(Review review) {
+    final comment = review.comment.trim();
+
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.glassWhiteSoft,
+        borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
+        border: Border.all(color: AppTheme.glassBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  review.clientName,
+                  style: const TextStyle(
+                    color: AppTheme.textWhite,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Text(
+                review.rating.toStringAsFixed(1),
+                style: const TextStyle(
+                  color: AppTheme.verifiedGold,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          _buildReviewStars(review.rating),
+          if (comment.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              comment,
+              style: const TextStyle(color: AppTheme.textWhiteMuted),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReviewSummaryCard(Professional professional) {
+    return _buildInfoCard(
+      title: 'Reseñas',
+      children: [
+        StreamBuilder<List<Review>>(
+          stream: _reviewService.getReviewsByProfessional(professional.id),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting &&
+                !snapshot.hasData) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Center(
+                  child: CircularProgressIndicator(color: AppTheme.warmOrange),
+                ),
+              );
+            }
+
+            if (snapshot.hasError) {
+              return const Text(
+                'No se pudieron cargar tus reseñas.',
+                style: TextStyle(color: AppTheme.textWhiteMuted),
+              );
+            }
+
+            final reviews = snapshot.data ?? [];
+            if (reviews.isEmpty) {
+              return const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Aún no tienes reseñas.',
+                    style: TextStyle(
+                      color: AppTheme.textWhite,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 6),
+                  Text(
+                    'Cuando los clientes califiquen tu servicio, aparecerán aquí.',
+                    style: TextStyle(color: AppTheme.textWhiteMuted),
+                  ),
+                ],
+              );
+            }
+
+            final averageRating = _calculateAverageRating(reviews);
+            final latestReviews = reviews.take(2).toList();
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildProfileRow(
+                  'Rating promedio',
+                  averageRating.toStringAsFixed(1),
+                ),
+                _buildProfileRow('Total de reseñas', reviews.length.toString()),
+                const SizedBox(height: 4),
+                ...latestReviews.map(_buildReviewPreview),
+              ],
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -325,8 +460,6 @@ class ProfessionalHomeScreen extends StatelessWidget {
 
   Widget _buildProfile(BuildContext context, Professional professional) {
     final hasDescription = professional.description.trim().isNotEmpty;
-    final hasPhoneNumber = professional.phoneNumber.trim().isNotEmpty;
-    final hasWhatsappNumber = professional.whatsappNumber.trim().isNotEmpty;
     final description = hasDescription
         ? professional.description.trim()
         : 'Sin descripción por ahora.';
@@ -334,35 +467,20 @@ class ProfessionalHomeScreen extends StatelessWidget {
     return ListView(
       children: [
         _buildVisualProfileHeader(professional),
-        _buildProfileCompletionCard(professional),
-        if (!hasDescription)
-          _buildNotice(
-            'Agrega una descripción para que los clientes entiendan mejor tus servicios.',
-          ),
-        if (!hasPhoneNumber || !hasWhatsappNumber)
-          _buildNotice(
-            'Agrega tu teléfono y WhatsApp para que los clientes puedan contactarte.',
-          ),
+        _buildVisibilityStatusCard(professional),
         _buildInfoCard(
           title: 'Información básica',
           children: [
             _buildProfileRow('Nombre', professional.name),
             _buildProfileRow('Email', professional.email),
-            _buildProfileRow('Categoría', professional.category),
-            _buildProfileRow('Ciudad', professional.city),
           ],
         ),
+        _buildContactInfoCard(professional),
         _buildInfoCard(
           title: 'Descripción',
           children: [_buildProfileRow('Descripción', description)],
         ),
-        _buildInfoCard(
-          title: 'Contacto',
-          children: [
-            _buildProfileRow('Teléfono', professional.phoneNumber),
-            _buildProfileRow('WhatsApp', professional.whatsappNumber),
-          ],
-        ),
+        _buildReviewSummaryCard(professional),
         _buildInfoCard(
           title: 'Suscripción',
           children: [
