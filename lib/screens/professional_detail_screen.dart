@@ -7,6 +7,7 @@ import '../models/review.dart';
 import '../services/auth_service.dart';
 import '../services/contact_service.dart';
 import '../services/review_service.dart';
+import '../utils/professional_profile_utils.dart';
 import 'review_form_screen.dart';
 
 class ProfessionalDetailScreen extends StatefulWidget {
@@ -103,65 +104,6 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
     }
   }
 
-  Widget _buildSection({
-    required String title,
-    required List<Widget> children,
-  }) {
-    return Card(
-      color: AppTheme.glassWhiteStrong,
-      elevation: 8,
-      margin: const EdgeInsets.only(bottom: 14),
-      shadowColor: AppTheme.terracottaRed.withAlpha(36),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppTheme.largeRadius),
-        side: const BorderSide(color: AppTheme.glassBorder),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                color: AppTheme.textWhite,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            ...children,
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    final displayValue = value.trim().isEmpty ? 'Sin completar' : value.trim();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: AppTheme.textWhite,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            displayValue,
-            style: const TextStyle(color: AppTheme.textWhiteMuted),
-          ),
-        ],
-      ),
-    );
-  }
-
   String _formatReviewDate(DateTime date) {
     final year = date.year.toString().padLeft(4, '0');
     final month = date.month.toString().padLeft(2, '0');
@@ -170,18 +112,472 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
     return '$year-$month-$day';
   }
 
-  Widget _buildReviewStars(double rating) {
+  double _calculateAverageRating(List<Review> reviews) {
+    if (reviews.isEmpty) return 0;
+
+    final total = reviews.fold<double>(
+      0,
+      (totalRating, review) => totalRating + review.rating,
+    );
+
+    return total / reviews.length;
+  }
+
+  Widget _buildGlassCard({
+    required List<Widget> children,
+    EdgeInsetsGeometry padding = const EdgeInsets.all(20),
+    EdgeInsetsGeometry margin = const EdgeInsets.only(bottom: 16),
+  }) {
+    return Container(
+      margin: margin,
+      padding: padding,
+      decoration: BoxDecoration(
+        color: AppTheme.glassWhiteStrong,
+        borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+        border: Border.all(color: AppTheme.glassBorder),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.terracottaRed.withAlpha(34),
+            blurRadius: 26,
+            offset: const Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children,
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        color: AppTheme.textWhite,
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+
+  Widget _buildTopHeader() {
     return Row(
+      children: [
+        IconButton(
+          tooltip: 'Volver',
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back),
+          color: AppTheme.textWhite,
+          style: IconButton.styleFrom(
+            backgroundColor: AppTheme.glassWhiteStrong,
+            side: const BorderSide(color: AppTheme.glassBorder),
+          ),
+        ),
+        const SizedBox(width: 14),
+        const Expanded(
+          child: Text(
+            'Perfil Profesional',
+            style: TextStyle(
+              color: AppTheme.textWhite,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBadge({
+    required IconData icon,
+    required String label,
+    Color color = AppTheme.warmOrange,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withAlpha(32),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withAlpha(120)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(color: color, fontWeight: FontWeight.w700),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReviewStars(double rating, {double size = 18}) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: List.generate(5, (index) {
         final starValue = index + 1;
         return Icon(
           Icons.star_rounded,
-          size: 18,
+          size: size,
           color: starValue <= rating.round()
               ? AppTheme.verifiedGold
               : AppTheme.textWhiteSubtle,
         );
       }),
+    );
+  }
+
+  Widget _buildMainProfileCard({
+    required Professional professional,
+    required List<Review> reviews,
+    required bool reviewsLoading,
+    required bool reviewsError,
+  }) {
+    final isProfileComplete = ProfessionalProfileUtils.isProfileComplete(
+      professional,
+    );
+    final averageRating = _calculateAverageRating(reviews);
+
+    return _buildGlassCard(
+      padding: const EdgeInsets.all(24),
+      children: [
+        Center(
+          child: Container(
+            height: 104,
+            width: 104,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [
+                  AppTheme.terracottaRed.withAlpha(180),
+                  AppTheme.warmOrange.withAlpha(150),
+                ],
+              ),
+              border: Border.all(color: AppTheme.glassBorder),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.warmOrange.withAlpha(58),
+                  blurRadius: 32,
+                  offset: const Offset(0, 16),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.home_repair_service,
+              color: AppTheme.textWhite,
+              size: 46,
+            ),
+          ),
+        ),
+        const SizedBox(height: 18),
+        Text(
+          professional.name,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: AppTheme.textWhite,
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          professional.category,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: AppTheme.warmOrange,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.location_on,
+              color: AppTheme.textWhiteMuted,
+              size: 18,
+            ),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                professional.city,
+                style: const TextStyle(color: AppTheme.textWhiteMuted),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            if (isProfileComplete)
+              _buildBadge(
+                icon: Icons.check_circle,
+                label: 'Perfil completo',
+                color: AppTheme.successGreen,
+              ),
+            if (reviews.isNotEmpty)
+              _buildBadge(
+                icon: Icons.star_rounded,
+                label:
+                    '${averageRating.toStringAsFixed(1)} (${reviews.length} reseñas)',
+                color: AppTheme.verifiedGold,
+              )
+            else
+              _buildBadge(
+                icon: Icons.star_border_rounded,
+                label: reviewsLoading
+                    ? 'Cargando reseñas'
+                    : reviewsError
+                    ? 'Reseñas no disponibles'
+                    : 'Sin reseñas todavía',
+                color: AppTheme.warmOrange,
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContactActions() {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.successGreen,
+              foregroundColor: AppTheme.textWhite,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
+              ),
+            ),
+            onPressed: _isContactLoading ? null : _openWhatsApp,
+            icon: _isContactLoading
+                ? const SizedBox(
+                    height: 18,
+                    width: 18,
+                    child: CircularProgressIndicator(
+                      color: AppTheme.textWhite,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : const Icon(Icons.chat_bubble_outline),
+            label: const Text('Contactar'),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppTheme.textWhite,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              side: const BorderSide(color: AppTheme.glassBorder),
+              backgroundColor: AppTheme.glassWhiteSoft,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
+              ),
+            ),
+            onPressed: _isContactLoading ? null : _callPhone,
+            icon: const Icon(Icons.call_outlined),
+            label: const Text('Llamar'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetricTile({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.glassWhiteSoft,
+        borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
+        border: Border.all(color: AppTheme.glassBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: AppTheme.warmOrange, size: 22),
+          const SizedBox(height: 12),
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppTheme.textWhite,
+              fontWeight: FontWeight.bold,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: const TextStyle(color: AppTheme.textWhiteMuted),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFutureMetricsSection() {
+    return _buildGlassCard(
+      children: [
+        _buildSectionTitle('Métricas'),
+        const SizedBox(height: 14),
+        GridView.count(
+          crossAxisCount: 2,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 1.35,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          children: [
+            _buildMetricTile(
+              icon: Icons.work_outline,
+              label: 'Trabajos',
+              value: 'Próximamente',
+            ),
+            _buildMetricTile(
+              icon: Icons.verified_outlined,
+              label: 'Verificación',
+              value: 'Pendiente',
+            ),
+            _buildMetricTile(
+              icon: Icons.favorite_border,
+              label: 'Satisfacción',
+              value: 'Aún no disponible',
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoChip({
+    required IconData icon,
+    required String label,
+    Color color = AppTheme.warmOrange,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        color: AppTheme.glassWhiteSoft,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppTheme.glassBorder),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppTheme.textWhiteMuted,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAboutSection(Professional professional) {
+    final description = professional.description.trim().isEmpty
+        ? 'Sin descripción por ahora.'
+        : professional.description.trim();
+
+    return _buildGlassCard(
+      children: [
+        _buildSectionTitle('Sobre mí'),
+        const SizedBox(height: 12),
+        Text(
+          description,
+          style: const TextStyle(color: AppTheme.textWhiteMuted, height: 1.45),
+        ),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _buildInfoChip(
+              icon: Icons.home_repair_service_outlined,
+              label: professional.category,
+            ),
+            _buildInfoChip(
+              icon: Icons.location_on_outlined,
+              label: professional.city,
+            ),
+            _buildInfoChip(
+              icon: Icons.chat_bubble_outline,
+              label: 'Contacto disponible',
+              color: AppTheme.successGreen,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPortfolioSection(Professional professional) {
+    final photos = professional.portfolioPhotos
+        .map((photo) => photo.trim())
+        .where((photo) => photo.isNotEmpty)
+        .toList();
+
+    return _buildGlassCard(
+      children: [
+        _buildSectionTitle('Portafolio'),
+        const SizedBox(height: 14),
+        if (photos.isEmpty)
+          const Text(
+            'Este profesional aún no ha agregado fotos de trabajos.',
+            style: TextStyle(color: AppTheme.textWhiteMuted),
+          )
+        else
+          GridView.builder(
+            itemCount: photos.length,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+            ),
+            itemBuilder: (context, index) {
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
+                child: Image.network(
+                  photos[index],
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: AppTheme.glassWhiteSoft,
+                      child: const Icon(
+                        Icons.image_not_supported_outlined,
+                        color: AppTheme.textWhiteMuted,
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+      ],
     );
   }
 
@@ -196,36 +592,74 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
         borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
         border: Border.all(color: AppTheme.glassBorder),
       ),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(child: _buildReviewStars(review.rating)),
-              Text(
-                _formatReviewDate(review.createdAt),
-                style: const TextStyle(
-                  color: AppTheme.textWhiteSubtle,
-                  fontSize: 12,
+          Container(
+            height: 42,
+            width: 42,
+            decoration: BoxDecoration(
+              color: AppTheme.warmOrange.withAlpha(42),
+              shape: BoxShape.circle,
+              border: Border.all(color: AppTheme.glassBorder),
+            ),
+            child: const Icon(
+              Icons.person_outline,
+              color: AppTheme.warmOrange,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        review.clientName,
+                        style: const TextStyle(
+                          color: AppTheme.textWhite,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _formatReviewDate(review.createdAt),
+                      style: const TextStyle(
+                        color: AppTheme.textWhiteSubtle,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            review.clientName,
-            style: const TextStyle(
-              color: AppTheme.textWhite,
-              fontWeight: FontWeight.bold,
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    _buildReviewStars(review.rating, size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      review.rating.toStringAsFixed(1),
+                      style: const TextStyle(
+                        color: AppTheme.verifiedGold,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                if (comment.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    comment,
+                    style: const TextStyle(color: AppTheme.textWhiteMuted),
+                  ),
+                ],
+              ],
             ),
           ),
-          if (comment.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              comment,
-              style: const TextStyle(color: AppTheme.textWhiteMuted),
-            ),
-          ],
         ],
       ),
     );
@@ -272,9 +706,13 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
               );
             }
 
-            return OutlinedButton(
-              onPressed: _openReviewForm,
-              child: const Text('Escribir reseña'),
+            return Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: OutlinedButton.icon(
+                onPressed: _openReviewForm,
+                icon: const Icon(Icons.rate_review_outlined),
+                label: const Text('Escribir reseña'),
+              ),
             );
           },
         );
@@ -282,173 +720,40 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
     );
   }
 
-  double _calculateAverageRating(List<Review> reviews) {
-    if (reviews.isEmpty) return 0;
-
-    final total = reviews.fold<double>(
-      0,
-      (totalRating, review) => totalRating + review.rating,
-    );
-
-    return total / reviews.length;
-  }
-
-  Widget _buildReviewsSummary(Professional professional) {
-    return StreamBuilder<List<Review>>(
-      stream: _reviewService.getReviewsByProfessional(professional.id),
-      builder: (context, snapshot) {
-        final fallbackRating = professional.rating;
-        final fallbackReviewCount = professional.reviewCount;
-
-        Widget buildContent({
-          required double rating,
-          required int reviewCount,
-          List<Review> reviews = const [],
-          String? message,
-          bool showLoading = false,
-        }) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildInfoRow('Rating', rating.toStringAsFixed(1)),
-              _buildInfoRow('Reviews', reviewCount.toString()),
-              const SizedBox(height: 12),
-              _buildReviewAction(),
-              if (showLoading)
-                const Padding(
-                  padding: EdgeInsets.only(top: 16),
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      color: AppTheme.warmOrange,
-                    ),
-                  ),
-                ),
-              if (message != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: Text(
-                    message,
-                    style: const TextStyle(color: AppTheme.textWhiteMuted),
-                  ),
-                ),
-              ...reviews.take(5).map(_buildReviewCard),
-            ],
-          );
-        }
-
-        if (snapshot.connectionState == ConnectionState.waiting &&
-            !snapshot.hasData) {
-          return buildContent(
-            rating: fallbackRating,
-            reviewCount: fallbackReviewCount,
-            showLoading: true,
-          );
-        }
-
-        if (snapshot.hasError) {
-          return buildContent(
-            rating: fallbackRating,
-            reviewCount: fallbackReviewCount,
-            message: 'No se pudieron cargar las reseñas.',
-          );
-        }
-
-        final reviews = snapshot.data ?? [];
-
-        if (reviews.isEmpty) {
-          return buildContent(
-            rating: fallbackRating,
-            reviewCount: fallbackReviewCount,
-            message: 'Aún no hay reseñas para este profesional.',
-          );
-        }
-
-        return buildContent(
-          rating: _calculateAverageRating(reviews),
-          reviewCount: reviews.length,
-          reviews: reviews,
-        );
-      },
-    );
-  }
-
-  Widget _buildHeader(Professional professional) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+  Widget _buildReviewsSection({
+    required List<Review> reviews,
+    required bool isLoading,
+    required bool hasError,
+  }) {
+    return _buildGlassCard(
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: IconButton(
-            tooltip: 'Volver',
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back),
-            color: AppTheme.warmOrange,
-            style: IconButton.styleFrom(
-              backgroundColor: AppTheme.glassWhiteStrong,
-              side: const BorderSide(color: AppTheme.glassBorder),
+        _buildSectionTitle('Reseñas recientes'),
+        _buildReviewAction(),
+        if (isLoading)
+          const Padding(
+            padding: EdgeInsets.only(top: 18),
+            child: Center(
+              child: CircularProgressIndicator(color: AppTheme.warmOrange),
             ),
-          ),
-        ),
-        const SizedBox(height: 18),
-        Center(
-          child: Container(
-            height: 92,
-            width: 92,
-            decoration: BoxDecoration(
-              color: AppTheme.terracottaRed.withAlpha(72),
-              shape: BoxShape.circle,
-              border: Border.all(color: AppTheme.glassBorder),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.terracottaRed.withAlpha(64),
-                  blurRadius: 28,
-                  offset: const Offset(0, 14),
-                ),
-              ],
+          )
+        else if (hasError)
+          const Padding(
+            padding: EdgeInsets.only(top: 14),
+            child: Text(
+              'No se pudieron cargar las reseñas.',
+              style: TextStyle(color: AppTheme.textWhiteMuted),
             ),
-            child: const Icon(
-              Icons.home_repair_service,
-              color: AppTheme.warmOrange,
-              size: 42,
+          )
+        else if (reviews.isEmpty)
+          const Padding(
+            padding: EdgeInsets.only(top: 14),
+            child: Text(
+              'Aún no hay reseñas para este profesional.',
+              style: TextStyle(color: AppTheme.textWhiteMuted),
             ),
-          ),
-        ),
-        const SizedBox(height: 18),
-        Text(
-          professional.name,
-          style: const TextStyle(
-            color: AppTheme.textWhite,
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          professional.category,
-          style: const TextStyle(
-            color: AppTheme.warmOrange,
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 6),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.location_on,
-              color: AppTheme.textWhiteMuted,
-              size: 18,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              professional.city,
-              style: const TextStyle(color: AppTheme.textWhiteMuted),
-            ),
-          ],
-        ),
+          )
+        else
+          ...reviews.take(5).map(_buildReviewCard),
       ],
     );
   }
@@ -456,9 +761,6 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final professional = widget.professional;
-    final description = professional.description.trim().isEmpty
-        ? 'Sin descripción por ahora.'
-        : professional.description.trim();
 
     return Scaffold(
       body: Container(
@@ -476,46 +778,40 @@ class _ProfessionalDetailScreenState extends State<ProfessionalDetailScreen> {
           ),
         ),
         child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.all(AppTheme.screenPadding),
-            children: [
-              _buildHeader(professional),
-              const SizedBox(height: 28),
-              _buildSection(
-                title: 'Descripción',
-                children: [_buildInfoRow('Descripción', description)],
-              ),
-              _buildSection(
-                title: 'Reputación',
-                children: [_buildReviewsSummary(professional)],
-              ),
-              _buildSection(
-                title: 'Contacto',
+          child: StreamBuilder<List<Review>>(
+            stream: _reviewService.getReviewsByProfessional(professional.id),
+            builder: (context, reviewSnapshot) {
+              final reviews = reviewSnapshot.data ?? [];
+              final reviewsLoading =
+                  reviewSnapshot.connectionState == ConnectionState.waiting &&
+                  !reviewSnapshot.hasData;
+              final reviewsError = reviewSnapshot.hasError;
+
+              return ListView(
+                padding: const EdgeInsets.all(AppTheme.screenPadding),
                 children: [
-                  _buildInfoRow('Teléfono', professional.phoneNumber),
-                  _buildInfoRow('WhatsApp', professional.whatsappNumber),
-                ],
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.successGreen,
-                  foregroundColor: AppTheme.textWhite,
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
+                  _buildTopHeader(),
+                  const SizedBox(height: 18),
+                  _buildMainProfileCard(
+                    professional: professional,
+                    reviews: reviews,
+                    reviewsLoading: reviewsLoading,
+                    reviewsError: reviewsError,
                   ),
-                ),
-                onPressed: _isContactLoading ? null : _openWhatsApp,
-                child: const Text('Contactar por WhatsApp'),
-              ),
-              const SizedBox(height: 10),
-              OutlinedButton(
-                onPressed: _isContactLoading ? null : _callPhone,
-                child: const Text('Llamar'),
-              ),
-              const SizedBox(height: 16),
-            ],
+                  _buildContactActions(),
+                  const SizedBox(height: 16),
+                  _buildFutureMetricsSection(),
+                  _buildAboutSection(professional),
+                  _buildPortfolioSection(professional),
+                  _buildReviewsSection(
+                    reviews: reviews,
+                    isLoading: reviewsLoading,
+                    hasError: reviewsError,
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              );
+            },
           ),
         ),
       ),
