@@ -82,151 +82,6 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
     }).toList();
   }
 
-  Widget _buildProfessionalCard(Professional professional) {
-    return Card(
-      color: AppTheme.glassWhiteStrong,
-      margin: EdgeInsets.zero,
-      elevation: 8,
-      shadowColor: AppTheme.terracottaRed.withAlpha(40),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppTheme.largeRadius),
-        side: const BorderSide(color: AppTheme.glassBorder),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppTheme.largeRadius),
-        onTap: () => _openProfessionalDetail(professional),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    height: 46,
-                    width: 46,
-                    decoration: BoxDecoration(
-                      color: AppTheme.terracottaRed.withAlpha(70),
-                      borderRadius: BorderRadius.circular(
-                        AppTheme.defaultRadius,
-                      ),
-                      border: Border.all(color: AppTheme.glassBorder),
-                    ),
-                    child: const Icon(
-                      Icons.home_repair_service,
-                      color: AppTheme.warmOrange,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          professional.name,
-                          style: const TextStyle(
-                            color: AppTheme.textWhite,
-                            fontSize: 19,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          professional.category,
-                          style: const TextStyle(
-                            color: AppTheme.warmOrange,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              _professionalInfoRow(
-                icon: Icons.location_on,
-                text: professional.city,
-              ),
-              const SizedBox(height: 8),
-              _professionalInfoRow(
-                icon: Icons.chat,
-                text: 'WhatsApp: ${professional.whatsappNumber}',
-              ),
-              const SizedBox(height: 18),
-              OutlinedButton(
-                onPressed: () => _openProfessionalDetail(professional),
-                child: const Text('Ver perfil'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _professionalInfoRow({required IconData icon, required String text}) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: AppTheme.textWhiteMuted),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: const TextStyle(color: AppTheme.textWhiteMuted),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMarketplaceEmptyState({
-    required IconData icon,
-    required String title,
-    required String message,
-    String? actionText,
-    VoidCallback? onAction,
-  }) {
-    return Card(
-      color: AppTheme.glassWhiteStrong,
-      elevation: 8,
-      shadowColor: AppTheme.terracottaRed.withAlpha(36),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppTheme.largeRadius),
-        side: const BorderSide(color: AppTheme.glassBorder),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(22),
-        child: Column(
-          children: [
-            Icon(icon, color: AppTheme.warmOrange, size: 38),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: const TextStyle(
-                color: AppTheme.textWhite,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: const TextStyle(color: AppTheme.textWhiteMuted),
-              textAlign: TextAlign.center,
-            ),
-            if (actionText != null && onAction != null) ...[
-              const SizedBox(height: 16),
-              OutlinedButton(onPressed: onAction, child: Text(actionText)),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
   IconData _iconForCategory(String category) {
     switch (category) {
       case 'Carpintería':
@@ -288,55 +143,201 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
     return '$count profesionales';
   }
 
-  Widget _buildHeader() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+  Widget _buildMiniChip({required IconData icon, required String text}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: AppTheme.warmOrange.withAlpha(26),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppTheme.warmOrange.withAlpha(82)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: AppTheme.warmOrange, size: 15),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppTheme.warmOrange,
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader({required String title, String? subtitle}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Ubicación',
-                style: TextStyle(
-                  color: AppTheme.textWhiteMuted,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                _selectedCity ?? 'Colombia',
-                style: const TextStyle(
-                  color: AppTheme.textWhite,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'Encuentra profesionales cerca de ti',
-                style: TextStyle(color: AppTheme.textWhiteMuted, fontSize: 15),
-              ),
-            ],
+        Text(
+          title,
+          style: const TextStyle(
+            color: AppTheme.textWhite,
+            fontSize: 21,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(width: 12),
-        IconButton(
-          tooltip: 'Cerrar sesión',
-          onPressed: () => _logout(context),
-          icon: const Icon(Icons.logout),
-          color: AppTheme.warmOrange,
-          style: IconButton.styleFrom(
-            backgroundColor: AppTheme.glassWhiteStrong,
-            side: const BorderSide(color: AppTheme.glassBorder),
+        if (subtitle != null) ...[
+          const SizedBox(height: 5),
+          Text(
+            subtitle,
+            style: const TextStyle(color: AppTheme.textWhiteMuted),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _professionalInfoRow({required IconData icon, required String text}) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: AppTheme.textWhiteMuted),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(color: AppTheme.textWhiteMuted),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildSearchAndCityCard(bool hasFilters) {
+  Widget _buildProfessionalCard(Professional professional) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.glassWhiteStrong,
+        borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+        border: Border.all(color: AppTheme.glassBorder),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.terracottaRed.withAlpha(34),
+            blurRadius: 24,
+            offset: const Offset(0, 14),
+          ),
+        ],
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+        onTap: () => _openProfessionalDetail(professional),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 58,
+                    width: 58,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppTheme.terracottaRed.withAlpha(150),
+                          AppTheme.warmOrange.withAlpha(105),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppTheme.glassBorder),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.warmOrange.withAlpha(34),
+                          blurRadius: 18,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.home_repair_service,
+                      color: AppTheme.textWhite,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          professional.name,
+                          style: const TextStyle(
+                            color: AppTheme.textWhite,
+                            fontSize: 19,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        _buildMiniChip(
+                          icon: _iconForCategory(professional.category),
+                          text: professional.category,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  IconButton(
+                    tooltip: 'Ver perfil',
+                    onPressed: () => _openProfessionalDetail(professional),
+                    icon: const Icon(Icons.arrow_forward),
+                    color: AppTheme.warmOrange,
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppTheme.glassWhiteSoft,
+                      side: const BorderSide(color: AppTheme.glassBorder),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppTheme.glassWhiteSoft,
+                  borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
+                  border: Border.all(color: AppTheme.glassBorder),
+                ),
+                child: Column(
+                  children: [
+                    _professionalInfoRow(
+                      icon: Icons.location_on_outlined,
+                      text: professional.city,
+                    ),
+                    const SizedBox(height: 10),
+                    _professionalInfoRow(
+                      icon: Icons.chat_bubble_outline,
+                      text: 'WhatsApp: ${professional.whatsappNumber}',
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+              OutlinedButton.icon(
+                onPressed: () => _openProfessionalDetail(professional),
+                icon: const Icon(Icons.person_search_outlined),
+                label: const Text('Ver perfil'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMarketplaceEmptyState({
+    required IconData icon,
+    required String title,
+    required String message,
+    String? actionText,
+    VoidCallback? onAction,
+  }) {
     return Card(
       color: AppTheme.glassWhiteStrong,
       elevation: 8,
@@ -346,45 +347,194 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
         side: const BorderSide(color: AppTheme.glassBorder),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(22),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(
-              controller: _searchController,
-              decoration: const InputDecoration(
-                hintText: 'Buscar servicios...',
-                prefixIcon: Icon(Icons.search),
+            Icon(icon, color: AppTheme.warmOrange, size: 38),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: const TextStyle(
+                color: AppTheme.textWhite,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
-              onChanged: (value) {
-                setState(() => _searchText = value);
-              },
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              key: ValueKey('city-${_selectedCity ?? ''}'),
-              initialValue: _selectedCity,
-              decoration: const InputDecoration(labelText: 'Ciudad'),
-              dropdownColor: AppTheme.darkBackgroundAlt,
-              style: const TextStyle(color: AppTheme.textWhite),
-              items: AppConstants.mainCities
-                  .map(
-                    (city) => DropdownMenuItem(value: city, child: Text(city)),
-                  )
-                  .toList(),
-              onChanged: (value) {
-                setState(() => _selectedCity = value);
-              },
+            const SizedBox(height: 8),
+            Text(
+              message,
+              style: const TextStyle(color: AppTheme.textWhiteMuted),
+              textAlign: TextAlign.center,
             ),
-            if (hasFilters) ...[
-              const SizedBox(height: 12),
-              OutlinedButton(
-                onPressed: _clearFilters,
-                child: const Text('Limpiar filtros'),
-              ),
+            if (actionText != null && onAction != null) ...[
+              const SizedBox(height: 16),
+              OutlinedButton(onPressed: onAction, child: Text(actionText)),
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: AppTheme.glassWhiteStrong,
+        borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+        border: Border.all(color: AppTheme.glassBorder),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.terracottaRed.withAlpha(30),
+            blurRadius: 28,
+            offset: const Offset(0, 16),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      height: 34,
+                      width: 34,
+                      decoration: BoxDecoration(
+                        color: AppTheme.warmOrange.withAlpha(36),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppTheme.glassBorder),
+                      ),
+                      child: const Icon(
+                        Icons.location_on_outlined,
+                        color: AppTheme.warmOrange,
+                        size: 19,
+                      ),
+                    ),
+                    const SizedBox(width: 9),
+                    Flexible(
+                      child: Text(
+                        _selectedCity ?? 'Colombia',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppTheme.textWhiteMuted,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                const Text(
+                  '¿Qué servicio necesitas?',
+                  style: TextStyle(
+                    color: AppTheme.textWhite,
+                    fontSize: 31,
+                    fontWeight: FontWeight.w900,
+                    height: 1.05,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Encuentra profesionales cerca de ti',
+                  style: TextStyle(
+                    color: AppTheme.textWhiteMuted,
+                    fontSize: 15,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          IconButton(
+            tooltip: 'Cerrar sesión',
+            onPressed: () => _logout(context),
+            icon: const Icon(Icons.logout),
+            color: AppTheme.warmOrange,
+            style: IconButton.styleFrom(
+              backgroundColor: AppTheme.glassWhiteSoft,
+              side: const BorderSide(color: AppTheme.glassBorder),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchAndCityCard(bool hasFilters) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.glassWhiteStrong,
+        borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+        border: Border.all(color: AppTheme.glassBorder),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.terracottaRed.withAlpha(30),
+            blurRadius: 24,
+            offset: const Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Busca por servicio o profesional',
+            style: TextStyle(
+              color: AppTheme.textWhite,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _searchController,
+            decoration: const InputDecoration(
+              hintText: 'Buscar servicios...',
+              prefixIcon: Icon(Icons.search),
+            ),
+            onChanged: (value) {
+              setState(() => _searchText = value);
+            },
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Filtrar por ciudad',
+            style: TextStyle(
+              color: AppTheme.textWhite,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            key: ValueKey('city-${_selectedCity ?? ''}'),
+            initialValue: _selectedCity,
+            decoration: const InputDecoration(labelText: 'Ciudad'),
+            dropdownColor: AppTheme.darkBackgroundAlt,
+            style: const TextStyle(color: AppTheme.textWhite),
+            items: AppConstants.mainCities
+                .map((city) => DropdownMenuItem(value: city, child: Text(city)))
+                .toList(),
+            onChanged: (value) {
+              setState(() => _selectedCity = value);
+            },
+          ),
+          if (hasFilters) ...[
+            const SizedBox(height: 14),
+            OutlinedButton.icon(
+              onPressed: _clearFilters,
+              icon: const Icon(Icons.filter_alt_off_outlined),
+              label: const Text('Limpiar filtros'),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -395,13 +545,9 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text(
-          'Servicios Disponibles',
-          style: TextStyle(
-            color: AppTheme.textWhite,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+        _buildSectionHeader(
+          title: 'Servicios Disponibles',
+          subtitle: 'Explora categorías y encuentra ayuda confiable',
         ),
         const SizedBox(height: 14),
         if (categories.isEmpty)
@@ -454,7 +600,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                   crossAxisCount: 2,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
-                  childAspectRatio: 0.88,
+                  childAspectRatio: 0.82,
                 ),
                 itemBuilder: (context, index) {
                   final category = categories[index];
@@ -514,9 +660,9 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        AppTheme.darkBackground.withAlpha(38),
-                        AppTheme.darkBackground.withAlpha(146),
-                        AppTheme.darkBackground.withAlpha(220),
+                        AppTheme.darkBackground.withAlpha(28),
+                        AppTheme.darkBackground.withAlpha(138),
+                        AppTheme.darkBackground.withAlpha(226),
                       ],
                     ),
                   ),
@@ -525,17 +671,24 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                   top: 14,
                   right: 14,
                   child: Container(
-                    height: 46,
-                    width: 46,
+                    height: 48,
+                    width: 48,
                     decoration: BoxDecoration(
                       color: AppTheme.glassWhiteStrong,
                       shape: BoxShape.circle,
                       border: Border.all(color: AppTheme.glassBorder),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.warmOrange.withAlpha(30),
+                          blurRadius: 18,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
                     ),
                     child: Icon(
                       _iconForCategory(category),
                       color: AppTheme.warmOrange,
-                      size: 24,
+                      size: 25,
                     ),
                   ),
                 ),
@@ -552,9 +705,9 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: AppTheme.textWhite,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 17,
-                          height: 1.1,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 18,
+                          height: 1.08,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -564,7 +717,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: AppTheme.textWhiteMuted,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
                           fontSize: 13,
                         ),
                       ),
@@ -586,7 +739,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppTheme.terracottaRed.withAlpha(112),
+            AppTheme.terracottaRed.withAlpha(120),
             AppTheme.warmOrange.withAlpha(72),
             AppTheme.darkBackgroundAlt,
           ],
@@ -596,7 +749,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
         child: Icon(
           _iconForCategory(category),
           color: AppTheme.textWhite.withAlpha(86),
-          size: 56,
+          size: 58,
         ),
       ),
     );
@@ -703,16 +856,12 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                 _buildHeader(),
                 const SizedBox(height: 20),
                 _buildSearchAndCityCard(hasFilters),
-                const SizedBox(height: 24),
+                const SizedBox(height: 26),
                 _buildCategoryGrid(),
-                const SizedBox(height: 28),
-                const Text(
-                  'Profesionales recientes',
-                  style: TextStyle(
-                    color: AppTheme.textWhite,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                const SizedBox(height: 30),
+                _buildSectionHeader(
+                  title: 'Profesionales recientes',
+                  subtitle: 'Perfiles completos disponibles para contactar',
                 ),
                 const SizedBox(height: 14),
                 _buildRecentProfessionalsSection(),
