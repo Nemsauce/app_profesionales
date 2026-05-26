@@ -320,6 +320,53 @@ class _CategoryProfessionalsScreenState
     );
   }
 
+  Widget _buildCategoryEmptyState({
+    required IconData icon,
+    required String title,
+    required String message,
+    String? actionText,
+    VoidCallback? onAction,
+  }) {
+    return Card(
+      color: AppTheme.glassWhiteStrong,
+      elevation: 8,
+      shadowColor: AppTheme.terracottaRed.withAlpha(36),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+        side: const BorderSide(color: AppTheme.glassBorder),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(22),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: AppTheme.warmOrange, size: 38),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: const TextStyle(
+                color: AppTheme.textWhite,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              style: const TextStyle(color: AppTheme.textWhiteMuted),
+              textAlign: TextAlign.center,
+            ),
+            if (actionText != null && onAction != null) ...[
+              const SizedBox(height: 16),
+              OutlinedButton(onPressed: onAction, child: Text(actionText)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildProfessionalsList(bool hasFilters) {
     return StreamBuilder<List<Professional>>(
       stream: _professionalService.getActiveProfessionalsFiltered(
@@ -349,12 +396,16 @@ class _CategoryProfessionalsScreenState
 
         if (professionals.isEmpty) {
           return Center(
-            child: Text(
-              hasFilters
-                  ? 'No hay profesionales disponibles con estos filtros.'
-                  : 'No hay profesionales disponibles en esta categoría por ahora.',
-              style: const TextStyle(color: AppTheme.textWhiteMuted),
-              textAlign: TextAlign.center,
+            child: _buildCategoryEmptyState(
+              icon: hasFilters ? Icons.search_off : Icons.category,
+              title: hasFilters
+                  ? 'No encontramos resultados'
+                  : 'Aún no hay profesionales en esta categoría',
+              message: hasFilters
+                  ? 'Prueba limpiar los filtros o cambiar la ciudad.'
+                  : 'Cuando haya profesionales con perfil completo en esta categoría, aparecerán aquí.',
+              actionText: hasFilters ? 'Limpiar filtros' : null,
+              onAction: hasFilters ? _clearFilters : null,
             ),
           );
         }

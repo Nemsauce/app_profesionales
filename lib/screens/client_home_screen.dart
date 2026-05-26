@@ -180,6 +180,52 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
     );
   }
 
+  Widget _buildMarketplaceEmptyState({
+    required IconData icon,
+    required String title,
+    required String message,
+    String? actionText,
+    VoidCallback? onAction,
+  }) {
+    return Card(
+      color: AppTheme.glassWhiteStrong,
+      elevation: 8,
+      shadowColor: AppTheme.terracottaRed.withAlpha(36),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+        side: const BorderSide(color: AppTheme.glassBorder),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(22),
+        child: Column(
+          children: [
+            Icon(icon, color: AppTheme.warmOrange, size: 38),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: const TextStyle(
+                color: AppTheme.textWhite,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              style: const TextStyle(color: AppTheme.textWhiteMuted),
+              textAlign: TextAlign.center,
+            ),
+            if (actionText != null && onAction != null) ...[
+              const SizedBox(height: 16),
+              OutlinedButton(onPressed: onAction, child: Text(actionText)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   IconData _iconForCategory(String category) {
     switch (category) {
       case 'Carpintería':
@@ -452,16 +498,23 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
             );
 
         final recentProfessionals = professionals.take(3).toList();
+        final hasActiveFilters =
+            (_selectedCity?.isNotEmpty ?? false) ||
+            _searchText.trim().isNotEmpty;
 
         if (recentProfessionals.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 24),
-            child: Center(
-              child: Text(
-                'Aún no hay profesionales disponibles con perfil completo.',
-                style: TextStyle(color: AppTheme.textWhiteMuted),
-                textAlign: TextAlign.center,
-              ),
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: _buildMarketplaceEmptyState(
+              icon: hasActiveFilters ? Icons.search_off : Icons.visibility_off,
+              title: hasActiveFilters
+                  ? 'No encontramos profesionales'
+                  : 'Aún no hay profesionales visibles',
+              message: hasActiveFilters
+                  ? 'Prueba cambiar la ciudad o limpiar la búsqueda para ver más opciones.'
+                  : 'Los profesionales aparecerán aquí cuando completen su perfil y estén disponibles.',
+              actionText: hasActiveFilters ? 'Limpiar filtros' : null,
+              onAction: hasActiveFilters ? _clearFilters : null,
             ),
           );
         }
