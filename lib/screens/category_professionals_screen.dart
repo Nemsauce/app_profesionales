@@ -102,136 +102,210 @@ class _CategoryProfessionalsScreenState
   }
 
   Widget _buildHeader() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        IconButton(
-          tooltip: 'Volver',
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back),
-          color: AppTheme.warmOrange,
-          style: IconButton.styleFrom(
-            backgroundColor: AppTheme.glassWhiteStrong,
-            side: const BorderSide(color: AppTheme.glassBorder),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.glassWhiteStrong,
+        borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+        border: Border.all(color: AppTheme.glassBorder),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.terracottaRed.withAlpha(30),
+            blurRadius: 28,
+            offset: const Offset(0, 16),
           ),
-        ),
-        const SizedBox(width: 12),
-        Container(
-          height: 56,
-          width: 56,
-          decoration: BoxDecoration(
-            color: AppTheme.glassWhiteStrong,
-            shape: BoxShape.circle,
-            border: Border.all(color: AppTheme.glassBorder),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.terracottaRed.withAlpha(40),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          IconButton(
+            tooltip: 'Volver',
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.arrow_back),
+            color: AppTheme.textWhite,
+            style: IconButton.styleFrom(
+              backgroundColor: AppTheme.glassWhiteSoft,
+              side: const BorderSide(color: AppTheme.glassBorder),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Container(
+            height: 62,
+            width: 62,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppTheme.terracottaRed.withAlpha(150),
+                  AppTheme.warmOrange.withAlpha(105),
+                ],
               ),
-            ],
-          ),
-          child: Icon(
-            _iconForCategory(widget.category),
-            color: AppTheme.warmOrange,
-          ),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.category,
-                style: const TextStyle(
-                  color: AppTheme.textWhite,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppTheme.glassBorder),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.warmOrange.withAlpha(34),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
                 ),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'Profesionales disponibles',
-                style: TextStyle(color: AppTheme.textWhiteMuted, fontSize: 15),
-              ),
-            ],
+              ],
+            ),
+            child: Icon(
+              _iconForCategory(widget.category),
+              color: AppTheme.textWhite,
+              size: 30,
+            ),
           ),
-        ),
-      ],
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.category,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppTheme.textWhite,
+                    fontSize: 27,
+                    fontWeight: FontWeight.w900,
+                    height: 1.05,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Profesionales disponibles',
+                  style: TextStyle(
+                    color: AppTheme.textWhiteMuted,
+                    fontSize: 15,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildSearchAndCityCard(bool hasFilters) {
-    return Card(
-      color: AppTheme.glassWhiteStrong,
-      elevation: 8,
-      shadowColor: AppTheme.terracottaRed.withAlpha(36),
-      shape: RoundedRectangleBorder(
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.glassWhiteStrong,
         borderRadius: BorderRadius.circular(AppTheme.largeRadius),
-        side: const BorderSide(color: AppTheme.glassBorder),
+        border: Border.all(color: AppTheme.glassBorder),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.terracottaRed.withAlpha(30),
+            blurRadius: 24,
+            offset: const Offset(0, 14),
+          ),
+        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Buscar y filtrar',
-              style: TextStyle(
-                color: AppTheme.textWhite,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Busca dentro de esta categoría',
+            style: TextStyle(
+              color: AppTheme.textWhite,
+              fontWeight: FontWeight.bold,
             ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _searchController,
+            decoration: const InputDecoration(
+              hintText: 'Buscar profesionales...',
+              prefixIcon: Icon(Icons.search),
+            ),
+            onChanged: (value) {
+              setState(() => _searchText = value);
+            },
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Filtrar por ciudad',
+            style: TextStyle(
+              color: AppTheme.textWhite,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            key: ValueKey('city-${_selectedCity ?? ''}'),
+            initialValue: _selectedCity,
+            decoration: const InputDecoration(labelText: 'Ciudad'),
+            dropdownColor: AppTheme.darkBackgroundAlt,
+            style: const TextStyle(color: AppTheme.textWhite),
+            items: AppConstants.mainCities
+                .map((city) => DropdownMenuItem(value: city, child: Text(city)))
+                .toList(),
+            onChanged: (value) {
+              setState(() => _selectedCity = value);
+            },
+          ),
+          if (hasFilters) ...[
             const SizedBox(height: 14),
-            TextField(
-              controller: _searchController,
-              decoration: const InputDecoration(
-                hintText: 'Buscar servicios...',
-                prefixIcon: Icon(Icons.search),
-              ),
-              onChanged: (value) {
-                setState(() => _searchText = value);
-              },
+            OutlinedButton.icon(
+              onPressed: _clearFilters,
+              icon: const Icon(Icons.filter_alt_off_outlined),
+              label: const Text('Limpiar filtros'),
             ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              key: ValueKey('city-${_selectedCity ?? ''}'),
-              initialValue: _selectedCity,
-              decoration: const InputDecoration(labelText: 'Ciudad'),
-              dropdownColor: AppTheme.darkBackgroundAlt,
-              style: const TextStyle(color: AppTheme.textWhite),
-              items: AppConstants.mainCities
-                  .map(
-                    (city) => DropdownMenuItem(value: city, child: Text(city)),
-                  )
-                  .toList(),
-              onChanged: (value) {
-                setState(() => _selectedCity = value);
-              },
-            ),
-            if (hasFilters) ...[
-              const SizedBox(height: 12),
-              OutlinedButton(
-                onPressed: _clearFilters,
-                child: const Text('Limpiar filtros'),
-              ),
-            ],
           ],
-        ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryChip(String category) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: AppTheme.warmOrange.withAlpha(26),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppTheme.warmOrange.withAlpha(82)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            _iconForCategory(category),
+            color: AppTheme.warmOrange,
+            size: 15,
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              category,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppTheme.warmOrange,
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildProfessionalCard(Professional professional) {
-    return Card(
-      color: AppTheme.glassWhiteStrong,
-      margin: EdgeInsets.zero,
-      elevation: 8,
-      shadowColor: AppTheme.terracottaRed.withAlpha(40),
-      shape: RoundedRectangleBorder(
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.glassWhiteStrong,
         borderRadius: BorderRadius.circular(AppTheme.largeRadius),
-        side: const BorderSide(color: AppTheme.glassBorder),
+        border: Border.all(color: AppTheme.glassBorder),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.terracottaRed.withAlpha(34),
+            blurRadius: 24,
+            offset: const Offset(0, 14),
+          ),
+        ],
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(AppTheme.largeRadius),
@@ -245,16 +319,29 @@ class _CategoryProfessionalsScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    height: 46,
-                    width: 46,
+                    height: 58,
+                    width: 58,
                     decoration: BoxDecoration(
-                      color: AppTheme.terracottaRed.withAlpha(70),
-                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          AppTheme.terracottaRed.withAlpha(150),
+                          AppTheme.warmOrange.withAlpha(105),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: AppTheme.glassBorder),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.warmOrange.withAlpha(34),
+                          blurRadius: 18,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
                     ),
                     child: Icon(
                       _iconForCategory(professional.category),
-                      color: AppTheme.warmOrange,
+                      color: AppTheme.textWhite,
+                      size: 28,
                     ),
                   ),
                   const SizedBox(width: 14),
@@ -270,33 +357,51 @@ class _CategoryProfessionalsScreenState
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          professional.category,
-                          style: const TextStyle(
-                            color: AppTheme.warmOrange,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        const SizedBox(height: 6),
+                        _buildCategoryChip(professional.category),
                       ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  IconButton(
+                    tooltip: 'Ver perfil',
+                    onPressed: () => _openProfessionalDetail(professional),
+                    icon: const Icon(Icons.arrow_forward),
+                    color: AppTheme.warmOrange,
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppTheme.glassWhiteSoft,
+                      side: const BorderSide(color: AppTheme.glassBorder),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              _professionalInfoRow(
-                icon: Icons.location_on,
-                text: professional.city,
-              ),
-              const SizedBox(height: 8),
-              _professionalInfoRow(
-                icon: Icons.chat,
-                text: 'WhatsApp: ${professional.whatsappNumber}',
+              const SizedBox(height: 18),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppTheme.glassWhiteSoft,
+                  borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
+                  border: Border.all(color: AppTheme.glassBorder),
+                ),
+                child: Column(
+                  children: [
+                    _professionalInfoRow(
+                      icon: Icons.location_on_outlined,
+                      text: professional.city,
+                    ),
+                    const SizedBox(height: 10),
+                    _professionalInfoRow(
+                      icon: Icons.chat_bubble_outline,
+                      text: 'WhatsApp: ${professional.whatsappNumber}',
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 18),
-              OutlinedButton(
+              OutlinedButton.icon(
                 onPressed: () => _openProfessionalDetail(professional),
-                child: const Text('Ver perfil'),
+                icon: const Icon(Icons.person_search_outlined),
+                label: const Text('Ver perfil'),
               ),
             ],
           ),
@@ -327,42 +432,58 @@ class _CategoryProfessionalsScreenState
     String? actionText,
     VoidCallback? onAction,
   }) {
-    return Card(
-      color: AppTheme.glassWhiteStrong,
-      elevation: 8,
-      shadowColor: AppTheme.terracottaRed.withAlpha(36),
-      shape: RoundedRectangleBorder(
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: AppTheme.glassWhiteStrong,
         borderRadius: BorderRadius.circular(AppTheme.largeRadius),
-        side: const BorderSide(color: AppTheme.glassBorder),
+        border: Border.all(color: AppTheme.glassBorder),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.terracottaRed.withAlpha(30),
+            blurRadius: 24,
+            offset: const Offset(0, 14),
+          ),
+        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(22),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: AppTheme.warmOrange, size: 38),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: const TextStyle(
-                color: AppTheme.textWhite,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            height: 58,
+            width: 58,
+            decoration: BoxDecoration(
+              color: AppTheme.warmOrange.withAlpha(28),
+              shape: BoxShape.circle,
+              border: Border.all(color: AppTheme.glassBorder),
             ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: const TextStyle(color: AppTheme.textWhiteMuted),
-              textAlign: TextAlign.center,
+            child: Icon(icon, color: AppTheme.warmOrange, size: 30),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            title,
+            style: const TextStyle(
+              color: AppTheme.textWhite,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
             ),
-            if (actionText != null && onAction != null) ...[
-              const SizedBox(height: 16),
-              OutlinedButton(onPressed: onAction, child: Text(actionText)),
-            ],
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            style: const TextStyle(color: AppTheme.textWhiteMuted),
+            textAlign: TextAlign.center,
+          ),
+          if (actionText != null && onAction != null) ...[
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: onAction,
+              icon: const Icon(Icons.filter_alt_off_outlined),
+              label: Text(actionText),
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
