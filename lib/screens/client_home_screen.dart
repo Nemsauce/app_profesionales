@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../constants/app_constants.dart';
 import '../constants/app_theme.dart';
+import '../constants/category_asset_paths.dart';
 import '../models/professional.dart';
 import '../services/auth_service.dart';
 import '../services/professional_service.dart';
@@ -262,6 +263,31 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
         .toList();
   }
 
+  Map<String, int> _countCompleteProfessionalsByCategory(
+    List<Professional> professionals,
+  ) {
+    final counts = <String, int>{};
+
+    for (final professional in professionals) {
+      if (!ProfessionalProfileUtils.isProfileComplete(professional)) {
+        continue;
+      }
+
+      counts.update(
+        professional.category,
+        (currentCount) => currentCount + 1,
+        ifAbsent: () => 1,
+      );
+    }
+
+    return counts;
+  }
+
+  String _professionalCountLabel(int count) {
+    if (count == 1) return '1 profesional';
+    return '$count profesionales';
+  }
+
   Widget _buildHeader() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -388,60 +414,138 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
             ),
           )
         else
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: categories.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 1.18,
+          StreamBuilder<List<Professional>>(
+            stream: _professionalService.getActiveProfessionalsFiltered(
+              city: _selectedCity,
             ),
-            itemBuilder: (context, index) {
-              final category = categories[index];
-
-              return InkWell(
-                borderRadius: BorderRadius.circular(AppTheme.largeRadius),
-                splashColor: AppTheme.warmOrange.withAlpha(36),
-                highlightColor: AppTheme.terracottaRed.withAlpha(28),
-                onTap: () => _openCategory(category),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppTheme.glassWhiteStrong,
-                    borderRadius: BorderRadius.circular(AppTheme.largeRadius),
-                    border: Border.all(color: AppTheme.glassBorder),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppTheme.terracottaRed.withAlpha(18),
-                        blurRadius: 18,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting &&
+                  !snapshot.hasData) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 28),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: AppTheme.warmOrange,
+                    ),
                   ),
+                );
+              }
+
+              if (snapshot.hasError) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 18),
+                  child: Text(
+                    'No se pudieron cargar los servicios. Intenta de nuevo más tarde.',
+                    style: TextStyle(color: AppTheme.textWhiteMuted),
+                    textAlign: TextAlign.center,
+                  ),
+                );
+              }
+
+              final countsByCategory = _countCompleteProfessionalsByCategory(
+                snapshot.data ?? [],
+              );
+
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: categories.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 0.88,
+                ),
+                itemBuilder: (context, index) {
+                  final category = categories[index];
+                  final count = countsByCategory[category] ?? 0;
+
+                  return _buildCategoryCard(category: category, count: count);
+                },
+              );
+            },
+          ),
+      ],
+    );
+  }
+
+  Widget _buildCategoryCard({required String category, required int count}) {
+    final imagePath = CategoryAssetPaths.imageForCategory(category);
+    final borderRadius = BorderRadius.circular(AppTheme.largeRadius);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: borderRadius,
+        splashColor: AppTheme.warmOrange.withAlpha(36),
+        highlightColor: AppTheme.terracottaRed.withAlpha(28),
+        onTap: () => _openCategory(category),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: AppTheme.glassWhiteStrong,
+            borderRadius: borderRadius,
+            border: Border.all(color: AppTheme.glassBorder),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.terracottaRed.withAlpha(24),
+                blurRadius: 22,
+                offset: const Offset(0, 12),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: borderRadius,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (imagePath != null)
+                  Image.asset(
+                    imagePath,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return _buildCategoryFallback(category);
+                    },
+                  )
+                else
+                  _buildCategoryFallback(category),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppTheme.darkBackground.withAlpha(38),
+                        AppTheme.darkBackground.withAlpha(146),
+                        AppTheme.darkBackground.withAlpha(220),
+                      ],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 14,
+                  right: 14,
+                  child: Container(
+                    height: 46,
+                    width: 46,
+                    decoration: BoxDecoration(
+                      color: AppTheme.glassWhiteStrong,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppTheme.glassBorder),
+                    ),
+                    child: Icon(
+                      _iconForCategory(category),
+                      color: AppTheme.warmOrange,
+                      size: 24,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 16,
+                  right: 16,
+                  bottom: 16,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Align(
-                        alignment: Alignment.topRight,
-                        child: Container(
-                          height: 46,
-                          width: 46,
-                          decoration: BoxDecoration(
-                            color: AppTheme.glassWhiteSoft,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: AppTheme.glassBorder),
-                          ),
-                          child: Icon(
-                            _iconForCategory(category),
-                            color: AppTheme.warmOrange,
-                            size: 24,
-                          ),
-                        ),
-                      ),
-                      const Spacer(),
                       Text(
                         category,
                         maxLines: 2,
@@ -449,16 +553,52 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                         style: const TextStyle(
                           color: AppTheme.textWhite,
                           fontWeight: FontWeight.w800,
-                          fontSize: 16,
+                          fontSize: 17,
+                          height: 1.1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _professionalCountLabel(count),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppTheme.textWhiteMuted,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
                         ),
                       ),
                     ],
                   ),
                 ),
-              );
-            },
+              ],
+            ),
           ),
-      ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryFallback(String category) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppTheme.terracottaRed.withAlpha(112),
+            AppTheme.warmOrange.withAlpha(72),
+            AppTheme.darkBackgroundAlt,
+          ],
+        ),
+      ),
+      child: Center(
+        child: Icon(
+          _iconForCategory(category),
+          color: AppTheme.textWhite.withAlpha(86),
+          size: 56,
+        ),
+      ),
     );
   }
 
