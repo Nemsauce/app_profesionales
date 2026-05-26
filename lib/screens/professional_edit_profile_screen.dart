@@ -144,38 +144,301 @@ class _ProfessionalEditProfileScreenState
     );
   }
 
-  Widget _buildHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: IconButton(
-            tooltip: 'Volver',
-            onPressed: _isLoading ? null : () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back),
-            color: AppTheme.warmOrange,
-            style: IconButton.styleFrom(
-              backgroundColor: AppTheme.glassWhiteStrong,
-              side: const BorderSide(color: AppTheme.glassBorder),
-            ),
+  Widget _buildGlassCard({
+    required List<Widget> children,
+    EdgeInsetsGeometry padding = const EdgeInsets.all(22),
+    EdgeInsetsGeometry? margin,
+  }) {
+    return Container(
+      margin: margin,
+      padding: padding,
+      decoration: BoxDecoration(
+        color: AppTheme.glassWhiteStrong,
+        borderRadius: BorderRadius.circular(AppTheme.largeRadius),
+        border: Border.all(color: AppTheme.glassBorder),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.terracottaRed.withAlpha(34),
+            blurRadius: 28,
+            offset: const Offset(0, 16),
           ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children,
+      ),
+    );
+  }
+
+  Widget _helpText(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: AppTheme.textWhiteMuted,
+          fontSize: 12,
+          height: 1.3,
         ),
-        const SizedBox(height: 18),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return _buildGlassCard(
+      padding: const EdgeInsets.all(20),
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            IconButton(
+              tooltip: 'Volver',
+              onPressed: _isLoading ? null : () => Navigator.pop(context),
+              icon: const Icon(Icons.arrow_back),
+              color: AppTheme.textWhite,
+              style: IconButton.styleFrom(
+                backgroundColor: AppTheme.glassWhiteSoft,
+                side: const BorderSide(color: AppTheme.glassBorder),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Container(
+              height: 62,
+              width: 62,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppTheme.terracottaRed.withAlpha(150),
+                    AppTheme.warmOrange.withAlpha(105),
+                  ],
+                ),
+                shape: BoxShape.circle,
+                border: Border.all(color: AppTheme.glassBorder),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.warmOrange.withAlpha(34),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.manage_accounts_outlined,
+                color: AppTheme.textWhite,
+                size: 30,
+              ),
+            ),
+            const SizedBox(width: 14),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Editar perfil',
+                    style: TextStyle(
+                      color: AppTheme.textWhite,
+                      fontSize: 27,
+                      fontWeight: FontWeight.w900,
+                      height: 1.05,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Completa tu información para aparecer en el marketplace.',
+                    style: TextStyle(
+                      color: AppTheme.textWhiteMuted,
+                      fontSize: 15,
+                      height: 1.35,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVisibilityNoteCard() {
+    return _buildGlassCard(
+      padding: const EdgeInsets.all(18),
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 42,
+              width: 42,
+              decoration: BoxDecoration(
+                color: AppTheme.warmOrange.withAlpha(30),
+                shape: BoxShape.circle,
+                border: Border.all(color: AppTheme.glassBorder),
+              ),
+              child: const Icon(
+                Icons.visibility_outlined,
+                color: AppTheme.warmOrange,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 14),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Tu perfil debe estar completo para ser visible para clientes.',
+                    style: TextStyle(
+                      color: AppTheme.textWhite,
+                      fontWeight: FontWeight.bold,
+                      height: 1.25,
+                    ),
+                  ),
+                  SizedBox(height: 6),
+                  Text(
+                    'Nombre, categoría, ciudad, descripción, teléfono y WhatsApp deben estar completos.',
+                    style: TextStyle(
+                      color: AppTheme.textWhiteMuted,
+                      fontSize: 13,
+                      height: 1.35,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProfileFormCard({
+    required List<String> categoryOptions,
+    required List<String> cityOptions,
+  }) {
+    return _buildGlassCard(
+      padding: const EdgeInsets.all(24),
+      children: [
         const Text(
-          'Editar perfil',
+          'Información del perfil',
           style: TextStyle(
             color: AppTheme.textWhite,
-            fontSize: 30,
+            fontSize: 22,
             fontWeight: FontWeight.bold,
           ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
         const Text(
-          'Actualiza la información que verán tus clientes',
-          style: TextStyle(color: AppTheme.textWhiteMuted, fontSize: 15),
+          'Estos datos son los que verán los clientes antes de contactarte.',
+          style: TextStyle(color: AppTheme.textWhiteMuted, height: 1.35),
           textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 24),
+        _fieldLabel('Nombre'),
+        TextField(
+          controller: _nameController,
+          enabled: !_isLoading,
+          decoration: const InputDecoration(
+            hintText: 'Nombre profesional',
+            prefixIcon: Icon(Icons.person_outline),
+          ),
+        ),
+        const SizedBox(height: 16),
+        _fieldLabel('Categoría'),
+        DropdownButtonFormField<String>(
+          initialValue: _selectedCategory,
+          decoration: const InputDecoration(
+            hintText: 'Selecciona una categoría',
+            prefixIcon: Icon(Icons.home_repair_service_outlined),
+          ),
+          dropdownColor: AppTheme.darkBackgroundAlt,
+          style: const TextStyle(color: AppTheme.textWhite),
+          items: categoryOptions
+              .map(
+                (category) =>
+                    DropdownMenuItem(value: category, child: Text(category)),
+              )
+              .toList(),
+          onChanged: _isLoading
+              ? null
+              : (value) => setState(() => _selectedCategory = value),
+        ),
+        const SizedBox(height: 16),
+        _fieldLabel('Ciudad'),
+        DropdownButtonFormField<String>(
+          initialValue: _selectedCity,
+          decoration: const InputDecoration(
+            hintText: 'Selecciona una ciudad',
+            prefixIcon: Icon(Icons.location_on_outlined),
+          ),
+          dropdownColor: AppTheme.darkBackgroundAlt,
+          style: const TextStyle(color: AppTheme.textWhite),
+          items: cityOptions
+              .map((city) => DropdownMenuItem(value: city, child: Text(city)))
+              .toList(),
+          onChanged: _isLoading
+              ? null
+              : (value) => setState(() => _selectedCity = value),
+        ),
+        const SizedBox(height: 16),
+        _fieldLabel('Descripción'),
+        TextField(
+          controller: _descriptionController,
+          enabled: !_isLoading,
+          decoration: const InputDecoration(
+            hintText: 'Cuéntales a los clientes qué haces',
+            prefixIcon: Icon(Icons.description_outlined),
+          ),
+          minLines: 3,
+          maxLines: 5,
+        ),
+        const SizedBox(height: 16),
+        _fieldLabel('Teléfono'),
+        TextField(
+          controller: _phoneNumberController,
+          enabled: !_isLoading,
+          decoration: const InputDecoration(
+            hintText: 'Número de teléfono',
+            prefixIcon: Icon(Icons.phone_outlined),
+          ),
+          keyboardType: TextInputType.phone,
+        ),
+        _helpText('Usa un número móvil colombiano, por ejemplo 3001234567.'),
+        const SizedBox(height: 16),
+        _fieldLabel('WhatsApp'),
+        TextField(
+          controller: _whatsappNumberController,
+          enabled: !_isLoading,
+          decoration: const InputDecoration(
+            hintText: 'Número de WhatsApp',
+            prefixIcon: Icon(Icons.chat_bubble_outline),
+          ),
+          keyboardType: TextInputType.phone,
+        ),
+        _helpText('Usa un número móvil colombiano, por ejemplo 3001234567.'),
+        const SizedBox(height: 24),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.terracottaRed,
+            foregroundColor: AppTheme.textWhite,
+            padding: const EdgeInsets.symmetric(vertical: 18),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
+            ),
+          ),
+          onPressed: _isLoading ? null : _saveProfile,
+          child: _isLoading
+              ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Guardar cambios'),
         ),
       ],
     );
@@ -214,130 +477,12 @@ class _ProfessionalEditProfileScreenState
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _buildHeader(),
-                const SizedBox(height: 28),
-                Card(
-                  color: AppTheme.glassWhiteStrong,
-                  elevation: 10,
-                  shadowColor: AppTheme.terracottaRed.withAlpha(48),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.largeRadius),
-                    side: const BorderSide(color: AppTheme.glassBorder),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _fieldLabel('Nombre'),
-                        TextField(
-                          controller: _nameController,
-                          enabled: !_isLoading,
-                          decoration: const InputDecoration(
-                            hintText: 'Nombre profesional',
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        _fieldLabel('Categoría'),
-                        DropdownButtonFormField<String>(
-                          initialValue: _selectedCategory,
-                          decoration: const InputDecoration(
-                            hintText: 'Selecciona una categoría',
-                          ),
-                          dropdownColor: AppTheme.darkBackgroundAlt,
-                          style: const TextStyle(color: AppTheme.textWhite),
-                          items: categoryOptions
-                              .map(
-                                (category) => DropdownMenuItem(
-                                  value: category,
-                                  child: Text(category),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: _isLoading
-                              ? null
-                              : (value) =>
-                                    setState(() => _selectedCategory = value),
-                        ),
-                        const SizedBox(height: 16),
-                        _fieldLabel('Ciudad'),
-                        DropdownButtonFormField<String>(
-                          initialValue: _selectedCity,
-                          decoration: const InputDecoration(
-                            hintText: 'Selecciona una ciudad',
-                          ),
-                          dropdownColor: AppTheme.darkBackgroundAlt,
-                          style: const TextStyle(color: AppTheme.textWhite),
-                          items: cityOptions
-                              .map(
-                                (city) => DropdownMenuItem(
-                                  value: city,
-                                  child: Text(city),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: _isLoading
-                              ? null
-                              : (value) =>
-                                    setState(() => _selectedCity = value),
-                        ),
-                        const SizedBox(height: 16),
-                        _fieldLabel('Descripción'),
-                        TextField(
-                          controller: _descriptionController,
-                          enabled: !_isLoading,
-                          decoration: const InputDecoration(
-                            hintText: 'Cuéntales a los clientes qué haces',
-                          ),
-                          minLines: 3,
-                          maxLines: 5,
-                        ),
-                        const SizedBox(height: 16),
-                        _fieldLabel('Teléfono'),
-                        TextField(
-                          controller: _phoneNumberController,
-                          enabled: !_isLoading,
-                          decoration: const InputDecoration(
-                            hintText: 'Número de teléfono',
-                          ),
-                          keyboardType: TextInputType.phone,
-                        ),
-                        const SizedBox(height: 16),
-                        _fieldLabel('WhatsApp'),
-                        TextField(
-                          controller: _whatsappNumberController,
-                          enabled: !_isLoading,
-                          decoration: const InputDecoration(
-                            hintText: 'Número de WhatsApp',
-                          ),
-                          keyboardType: TextInputType.phone,
-                        ),
-                        const SizedBox(height: 24),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.terracottaRed,
-                            foregroundColor: AppTheme.textWhite,
-                            padding: const EdgeInsets.symmetric(vertical: 18),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                AppTheme.defaultRadius,
-                              ),
-                            ),
-                          ),
-                          onPressed: _isLoading ? null : _saveProfile,
-                          child: _isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text('Guardar'),
-                        ),
-                      ],
-                    ),
-                  ),
+                const SizedBox(height: 18),
+                _buildVisibilityNoteCard(),
+                const SizedBox(height: 18),
+                _buildProfileFormCard(
+                  categoryOptions: categoryOptions,
+                  cityOptions: cityOptions,
                 ),
                 const SizedBox(height: 16),
               ],
